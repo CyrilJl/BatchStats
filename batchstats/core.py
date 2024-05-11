@@ -2,14 +2,31 @@ import numpy as np
 
 
 class NoValidSamplesError(ValueError):
+    """
+    Error raised when there are no valid samples for calculation.
+    """
     pass
 
 
 class UnequalSamplesNumber(ValueError):
+    """
+    Error raised when two batches have unequal lengths.
+    """
     pass
 
 
 def any_nan(x, axis=None):
+    """
+    Check if there are any NaN values in the input array.
+
+    Args:
+        x (numpy.ndarray): Input array.
+        axis (int or tuple of ints, optional): Axis or axes along which to operate. Default is None.
+
+    Returns:
+        numpy.ndarray: Boolean array indicating NaN presence.
+
+    """
     return np.isnan(np.add.reduce(array=x, axis=axis))
 
 
@@ -56,11 +73,27 @@ class BatchStat:
 
 
 class BatchSum(BatchStat):
+    """
+    Class for calculating the sum of batches of data.
+
+    """
+
     def __init__(self):
         super().__init__()
         self.sum = None
 
     def update_batch(self, batch, assume_valid=False):
+        """
+        Update the sum with a new batch of data.
+
+        Args:
+            batch (numpy.ndarray): Input batch.
+            assume_valid (bool, optional): If True, assumes all elements in the batch are valid. Default is False.
+
+        Returns:
+            BatchSum: Updated BatchSum object.
+
+        """
         valid_batch = self._process_batch(batch=batch, assume_valid=assume_valid)
         n = len(valid_batch)
         if n > 0:
@@ -71,6 +104,16 @@ class BatchSum(BatchStat):
         return self
 
     def __call__(self) -> np.ndarray:
+        """
+        Calculate the sum.
+
+        Returns:
+            numpy.ndarray: Sum of the batches.
+
+        Raises:
+            NoValidSamplesError: If no valid samples are available.
+
+        """
         if self.sum is None:
             raise NoValidSamplesError("No valid samples for calculating sum.")
         else:
@@ -78,11 +121,27 @@ class BatchSum(BatchStat):
 
 
 class BatchMax(BatchStat):
+    """
+    Class for calculating the maximum of batches of data.
+
+    """
+
     def __init__(self):
         super().__init__()
         self.max = None
 
     def update_batch(self, batch, assume_valid=False):
+        """
+        Update the maximum with a new batch of data.
+
+        Args:
+            batch (numpy.ndarray): Input batch.
+            assume_valid (bool, optional): If True, assumes all elements in the batch are valid. Default is False.
+
+        Returns:
+            BatchMax: Updated BatchMax object.
+
+        """
         valid_batch = self._process_batch(batch=batch, assume_valid=assume_valid)
         n = len(valid_batch)
         if n > 0:
@@ -93,6 +152,16 @@ class BatchMax(BatchStat):
         return self
 
     def __call__(self) -> np.ndarray:
+        """
+        Calculate the maximum.
+
+        Returns:
+            numpy.ndarray: Maximum of the batches.
+
+        Raises:
+            NoValidSamplesError: If no valid samples are available.
+
+        """
         if self.max is None:
             raise NoValidSamplesError("No valid samples for calculating max.")
         else:
@@ -100,11 +169,27 @@ class BatchMax(BatchStat):
 
 
 class BatchMin(BatchStat):
+    """
+    Class for calculating the minimum of batches of data.
+
+    """
+
     def __init__(self):
         super().__init__()
         self.min = None
 
     def update_batch(self, batch, assume_valid=False):
+        """
+        Update the minimum with a new batch of data.
+
+        Args:
+            batch (numpy.ndarray): Input batch.
+            assume_valid (bool, optional): If True, assumes all elements in the batch are valid. Default is False.
+
+        Returns:
+            BatchMin: Updated BatchMin object.
+
+        """
         valid_batch = self._process_batch(batch=batch, assume_valid=assume_valid)
         n = len(valid_batch)
         if n > 0:
@@ -115,6 +200,16 @@ class BatchMin(BatchStat):
         return self
 
     def __call__(self) -> np.ndarray:
+        """
+        Calculate the minimum.
+
+        Returns:
+            numpy.ndarray: Minimum of the batches.
+
+        Raises:
+            NoValidSamplesError: If no valid samples are available.
+
+        """
         if self.min is None:
             raise NoValidSamplesError("No valid samples for calculating min.")
         else:
@@ -122,11 +217,27 @@ class BatchMin(BatchStat):
 
 
 class BatchMean(BatchStat):
+    """
+    Class for calculating the mean of batches of data.
+
+    """
+
     def __init__(self):
         super().__init__()
         self.mean = None
 
     def update_batch(self, batch, assume_valid=False):
+        """
+        Update the mean with a new batch of data.
+
+        Args:
+            batch (numpy.ndarray): Input batch.
+            assume_valid (bool, optional): If True, assumes all elements in the batch are valid. Default is False.
+
+        Returns:
+            BatchMean: Updated BatchMean object.
+
+        """
         valid_batch = self._process_batch(batch=batch, assume_valid=assume_valid)
         n = len(valid_batch)
         if n > 0:
@@ -137,6 +248,16 @@ class BatchMean(BatchStat):
         return self
 
     def __call__(self) -> np.ndarray:
+        """
+        Calculate the mean.
+
+        Returns:
+            numpy.ndarray: Mean of the batches.
+
+        Raises:
+            NoValidSamplesError: If no valid samples are available.
+
+        """
         if self.mean is None:
             raise NoValidSamplesError("No valid samples for calculating mean.")
         else:
@@ -144,6 +265,11 @@ class BatchMean(BatchStat):
 
 
 class BatchVar(BatchMean):
+    """
+    Class for calculating the variance of batches of data.
+
+    """
+
     def __init__(self, ddof=0):
         super().__init__()
         self.mean = BatchMean()
@@ -152,6 +278,17 @@ class BatchVar(BatchMean):
 
     @classmethod
     def init_var(cls, v, vm):
+        """
+        Initialize variance.
+
+        Args:
+            v (numpy.ndarray): Input data.
+            vm (numpy.ndarray): Mean of the input data.
+
+        Returns:
+            numpy.ndarray: Initialized variance.
+
+        """
         ret = cls.compute_incremental_variance(v, vm, vm)
         ret /= len(v)
         return ret
@@ -159,9 +296,16 @@ class BatchVar(BatchMean):
     @staticmethod
     def compute_incremental_variance(v, p, u):
         """
-        Equivalent to ((v-p).T@(v-u)).sum(axis=0)
-        Equivalent to np.einsum('ji,ji->i', v - p, v - u)
-        Faster, less memory used (no 2D intermediate array)
+        Compute incremental variance.
+
+        Args:
+            v (numpy.ndarray): Input data.
+            p (numpy.ndarray): Previous mean.
+            u (numpy.ndarray): Updated mean.
+
+        Returns:
+            numpy.ndarray: Incremental variance.
+
         """
         ret = np.einsum('ij,ij->j', v, v)
         ret -= np.einsum('j,ij->j', p + u, v)
@@ -169,6 +313,17 @@ class BatchVar(BatchMean):
         return ret
 
     def update_batch(self, batch, assume_valid=False):
+        """
+        Update the variance with a new batch of data.
+
+        Args:
+            batch (numpy.ndarray): Input batch.
+            assume_valid (bool, optional): If True, assumes all elements in the batch are valid. Default is False.
+
+        Returns:
+            BatchVar: Updated BatchVar object.
+
+        """
         valid_batch = self._process_batch(batch, assume_valid=assume_valid)
         n = len(valid_batch)
         if n > 0:
@@ -184,12 +339,27 @@ class BatchVar(BatchMean):
         return self
 
     def __call__(self) -> np.ndarray:
+        """
+        Calculate the variance.
+
+        Returns:
+            numpy.ndarray: Variance of the batches.
+
+        Raises:
+            NoValidSamplesError: If no valid samples are available.
+
+        """
         if self.var is None:
             raise NoValidSamplesError("No valid samples for calculating variance.")
         return (self.n_samples / (self.n_samples - self.ddof)) * self.var
 
 
 class BatchCov(BatchStat):
+    """
+    Class for calculating the covariance of batches of data.
+
+    """
+
     def __init__(self, ddof=0):
         super().__init__()
         self.mean1 = BatchMean()
@@ -198,6 +368,21 @@ class BatchCov(BatchStat):
         self.ddof = ddof
 
     def _process_batch(self, batch1, batch2, assume_valid=False):
+        """
+        Process the input batches, handling NaN values if necessary.
+
+        Args:
+            batch1 (numpy.ndarray): Input batch 1.
+            batch2 (numpy.ndarray): Input batch 2.
+            assume_valid (bool, optional): If True, assumes all elements in the batches are valid. Default is False.
+
+        Returns:
+            Tuple[numpy.ndarray, numpy.ndarray]: Processed batches 1 and 2.
+
+        Raises:
+            UnequalSamplesNumber: If the batches have unequal lengths.
+
+        """
         batch1, batch2 = np.atleast_2d(np.asarray(batch1)), np.atleast_2d(np.asarray(batch2))
         if assume_valid:
             self.n_samples += len(batch1)
@@ -214,6 +399,18 @@ class BatchCov(BatchStat):
                 return batch1[mask], batch2[mask]
 
     def update_batch(self, batch1, batch2, assume_valid=False):
+        """
+        Update the covariance with new batches of data.
+
+        Args:
+            batch1 (numpy.ndarray): Input batch 1.
+            batch2 (numpy.ndarray): Input batch 2.
+            assume_valid (bool, optional): If True, assumes all elements in the batches are valid. Default is False.
+
+        Returns:
+            BatchCov: Updated BatchCov object.
+
+        """
         batch1, batch2 = self._process_batch(batch1, batch2, assume_valid=assume_valid)
         n = len(batch1)
         if n > 0:
@@ -226,7 +423,6 @@ class BatchCov(BatchStat):
                 else:
                     self.cov = (batch1-self.mean1()).T@((batch2-self.mean2())/n)
             else:
-                # l'ordre des 6 lignes suivantes est très important
                 m1 = self.mean1()
                 self.mean2.update_batch(batch2, assume_valid=True)
                 m2 = self.mean2()
@@ -236,6 +432,16 @@ class BatchCov(BatchStat):
         return self
 
     def __call__(self) -> np.ndarray:
+        """
+        Calculate the covariance.
+
+        Returns:
+            numpy.ndarray: Covariance of the batches.
+
+        Raises:
+            NoValidSamplesError: If no valid samples are available.
+
+        """
         if self.cov is None:
             raise NoValidSamplesError("No valid samples for calculating covariance.")
         return self.n_samples/(self.n_samples - self.ddof)*self.cov
