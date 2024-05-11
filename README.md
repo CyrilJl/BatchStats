@@ -32,6 +32,24 @@ print("Batch Mean:", batchmean())
 print("Batch Variance:", batchvar())
 ```
 
+`batchstats` is also flexible in terms of input shapes, with the first dimension always representing the samples and the remaining dimensions representing the features:
+
+```python
+import numpy as np
+from batchstats import BatchSum
+
+data = np.random.randn(10_000, 80, 90)
+n_batches = 7
+
+batchsum = BatchSum()
+for batch_data in np.array_split(data, n_batches):
+    batchsum.update_batch(batch_data)
+
+true_sum = np.sum(data, axis=0)
+np.allclose(true_sum, batchsum()), batchsum().shape
+>>> (True, (80, 90))
+```
+
 ## Available Classes/Stats
 
 - `BatchCov`: Compute the covariance matrix of two datasets (not necessarily square).
