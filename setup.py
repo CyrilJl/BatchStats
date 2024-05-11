@@ -4,7 +4,7 @@ setup(
     name='batchstats',
     version='0.1',
     author='Cyril Joly',
-    description='Description of your package',
+    description='Efficient batch statistics computation library for Python.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/CyrilJl/BatchStats',
