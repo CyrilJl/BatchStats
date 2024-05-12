@@ -1,0 +1,11 @@
+name: base
+channels:
+  - conda-forge
+dependencies:
+  - nbsphinx
+  - nbsphinx-link
+  - pydata-sphinx-theme
+  - sphinx-copybutton
+  - sphinx-favicon
+  - pandoc
+  - numpy
