@@ -1,6 +1,6 @@
 [![PyPI Version](https://img.shields.io/pypi/v/batchstats.svg)](https://pypi.org/project/batchstats/)
 
-# BatchStats
+# <img src="https://raw.githubusercontent.com/CyrilJl/BatchStats/main/docs/source/_static/logo_batchstats.svg" alt="Logo BatchStats" width="35" height="35"> BatchStats: Efficient Batch Statistics Computation in Python
 
 `batchstats` is a Python package designed to compute various statistics of data that arrive batch by batch, making it suitable for streaming input or data too large to fit in memory.
 
@@ -126,7 +126,9 @@ np.allclose(a, b)
 >>> 306 ms ± 5.09 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 ```
 
+## Documentation
 
+The documentation is available [here](https://batchstats.readthedocs.io/en/latest/).
 
 ## Requesting Additional Statistics
 
