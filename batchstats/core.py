@@ -2,6 +2,8 @@ import string
 
 import numpy as np
 
+from ._misc import check_params
+
 
 class NoValidSamplesError(ValueError):
     """
@@ -276,7 +278,7 @@ class BatchVar(BatchMean):
         super().__init__()
         self.mean = BatchMean()
         self.var = None
-        self.ddof = ddof
+        self.ddof = check_params(param=ddof, types=int)
 
     @classmethod
     def init_var(cls, v, vm):
@@ -299,6 +301,9 @@ class BatchVar(BatchMean):
     def compute_incremental_variance(v, p, u):
         """
         Compute incremental variance.
+        For v 2D and p/u 1D, equivalent to ((v-p).T@(v-u)).sum(axis=0) or
+        np.einsum('ji,ji->i', v - p, v - u). faster and less memory consumer because
+        no intermediate 2d array are created.
 
         Args:
             v (numpy.ndarray): Input data.
@@ -372,7 +377,7 @@ class BatchCov(BatchStat):
         self.mean1 = BatchMean()
         self.mean2 = BatchMean()
         self.cov = None
-        self.ddof = ddof
+        self.ddof = check_params(param=ddof, types=int)
 
     def _process_batch(self, batch1, batch2=None, assume_valid=False):
         """
@@ -380,7 +385,7 @@ class BatchCov(BatchStat):
 
         Args:
             batch1 (numpy.ndarray): Input batch 1.
-            batch2 (numpy.ndarray): Input batch 2.
+            batch2 (numpy.ndarray, optional): Input batch 2. Default is None.
             assume_valid (bool, optional): If True, assumes all elements in the batches are valid. Default is False.
 
         Returns:
@@ -414,7 +419,7 @@ class BatchCov(BatchStat):
 
         Args:
             batch1 (numpy.ndarray): Input batch 1.
-            batch2 (numpy.ndarray): Input batch 2.
+            batch2 (numpy.ndarray, optional): Input batch 2. Default is None.
             assume_valid (bool, optional): If True, assumes all elements in the batches are valid. Default is False.
 
         Returns:
