@@ -11,6 +11,12 @@ def data():
 
 
 @pytest.fixture
+def data_2d_features():
+    m, n, o = 100_000, 50, 60
+    return np.random.randn(m, n, o)
+
+
+@pytest.fixture
 def n_batches():
     return 31
 
@@ -76,7 +82,7 @@ def test_var_ddof(data, n_batches):
     assert np.allclose(true_stat, batch_stat)
 
 
-def test_cov(data, n_batches):
+def test_cov_1(data, n_batches):
     true_cov = np.cov(data.T, ddof=0)
     true_var = np.var(data, axis=0)
 
@@ -84,7 +90,7 @@ def test_cov(data, n_batches):
     batchcov = BatchCov()
     for batch_data in np.array_split(data, n_batches):
         batchvar.update_batch(batch_data)
-        batchcov.update_batch(batch_data, batch_data)
+        batchcov.update_batch(batch_data)
 
     cov = batchcov()
     var = batchvar()
@@ -92,3 +98,36 @@ def test_cov(data, n_batches):
     assert np.allclose(cov, true_cov)
     assert np.allclose(var, true_var)
     assert np.allclose(var, np.diag(cov))
+
+
+def test_cov_2(data, n_batches):
+    true_cov = np.cov(data.T, ddof=0)
+    index = np.arange(25)
+
+    batchcov = BatchCov()
+    for batch_data in np.array_split(data, n_batches):
+        batchcov.update_batch(batch_data, batch_data[:, index])
+
+    cov = batchcov()
+
+    assert np.allclose(cov, true_cov[:, index])
+
+
+def test_mean_2d_features(data_2d_features, n_batches):
+    true_stat = np.mean(data_2d_features, axis=0)
+
+    batchvar = BatchMean()
+    for batch_data in np.array_split(data_2d_features, n_batches):
+        batchvar.update_batch(batch=batch_data)
+    batch_stat = batchvar()
+    assert np.allclose(true_stat, batch_stat)
+
+
+def test_var_2d_features(data_2d_features, n_batches):
+    true_stat = np.var(data_2d_features, axis=0)
+
+    batchvar = BatchVar()
+    for batch_data in np.array_split(data_2d_features, n_batches):
+        batchvar.update_batch(batch=batch_data)
+    batch_stat = batchvar()
+    assert np.allclose(true_stat, batch_stat)

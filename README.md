@@ -101,6 +101,33 @@ test_mean(data, n_batches)
 >>> True
 ```
 
+## Performance
+
+In addition to result accuracy, much attention has been given to computation times and memory usage. Fun fact, calculating the variance using `batchstats` consumes little RAM while being faster than `numpy.var`:
+
+```python
+%load_ext memory_profiler
+import numpy as np
+from batchstats import BatchVar
+
+data = np.random.randn(100_000, 1000)
+print(data.nbytes/2**20)
+
+%memit a = np.var(data, axis=0)
+%memit b = BatchVar().update_batch(data)()
+np.allclose(a, b)
+>>> 762.939453125
+>>> peak memory: 1604.63 MiB, increment: 763.35 MiB
+>>> peak memory: 842.62 MiB, increment: 0.91 MiB
+>>> True
+%timeit a = np.var(data, axis=0)
+%timeit b = BatchVar().update_batch(data)()
+>>> 510 ms ± 111 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+>>> 306 ms ± 5.09 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+```
+
+
+
 ## Requesting Additional Statistics
 
 If you require additional statistics that are not currently implemented in `batchstats`, feel free to open an issue on the GitHub repository or submit a pull request with your suggested feature. We welcome contributions and feedback from the community to improve `batchstats` and make it more versatile for various data analysis tasks.

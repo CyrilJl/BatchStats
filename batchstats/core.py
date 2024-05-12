@@ -1,3 +1,5 @@
+import string
+
 import numpy as np
 
 
@@ -307,8 +309,13 @@ class BatchVar(BatchMean):
             numpy.ndarray: Incremental variance.
 
         """
-        ret = np.einsum('ij,ij->j', v, v)
-        ret -= np.einsum('j,ij->j', p + u, v)
+        alphabet = string.ascii_lowercase
+        ndim = v.ndim
+        assert p.ndim == u.ndim == ndim-1
+        ij, j = alphabet[:ndim], alphabet[1:ndim]
+
+        ret = np.einsum(f'{ij},{ij}->{j}', v, v)
+        ret -= np.einsum(f'{j},{ij}->{j}', p + u, v)
         ret += len(v)*p*u
         return ret
 
@@ -367,7 +374,7 @@ class BatchCov(BatchStat):
         self.cov = None
         self.ddof = ddof
 
-    def _process_batch(self, batch1, batch2, assume_valid=False):
+    def _process_batch(self, batch1, batch2=None, assume_valid=False):
         """
         Process the input batches, handling NaN values if necessary.
 
@@ -383,7 +390,10 @@ class BatchCov(BatchStat):
             UnequalSamplesNumber: If the batches have unequal lengths.
 
         """
-        batch1, batch2 = np.atleast_2d(np.asarray(batch1)), np.atleast_2d(np.asarray(batch2))
+        if batch2 is None:
+            batch1 = batch2 = np.atleast_2d(np.asarray(batch1))
+        else:
+            batch1, batch2 = np.atleast_2d(np.asarray(batch1)), np.atleast_2d(np.asarray(batch2))
         if assume_valid:
             self.n_samples += len(batch1)
             return batch1, batch2
@@ -398,7 +408,7 @@ class BatchCov(BatchStat):
             else:
                 return batch1[mask], batch2[mask]
 
-    def update_batch(self, batch1, batch2, assume_valid=False):
+    def update_batch(self, batch1, batch2=None, assume_valid=False):
         """
         Update the covariance with new batches of data.
 
