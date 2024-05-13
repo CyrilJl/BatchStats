@@ -243,6 +243,8 @@ class BatchVar(BatchMean):
     """
     Class for calculating the variance of batches of data.
 
+    Args:
+        ddof (int, optional): Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
     """
 
     def __init__(self, ddof=0):
@@ -272,9 +274,9 @@ class BatchVar(BatchMean):
     def compute_incremental_variance(v, p, u):
         """
         Compute incremental variance.
-        For v 2D and p/u 1D, equivalent to ((v-p).T@(v-u)).sum(axis=0) or
-        np.einsum('ji,ji->i', v - p, v - u). faster and less memory consumer because
-        no intermediate 2d array are created.
+        For v 2D and p/u 1D, equivalent to ``((v-p).T@(v-u)).sum(axis=0)`` or
+        ``np.einsum('ji,ji->i', v - p, v - u)``. Faster and less memory consumer because
+        no intermediate 2D array are created.
 
         Args:
             v (numpy.ndarray): Input data.
@@ -341,6 +343,8 @@ class BatchCov(BatchStat):
     """
     Class for calculating the covariance of batches of data.
 
+    Args:
+        ddof (int, optional): Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
     """
 
     def __init__(self, ddof=0):

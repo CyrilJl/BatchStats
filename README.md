@@ -126,6 +126,30 @@ np.allclose(a, b)
 >>> 306 ms ± 5.09 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 ```
 
+## NaN handling possibility
+
+While the previous `Batch*` classes exclude every sample containing at least one NaN from the computations, the `BatchNan*` classes adopt a more flexible approach to handling NaN values, similar to `np.nansum`, `np.nanmean`, etc. Consequently, the outputted statistics can be computed from various numbers of samples for each feature:
+
+```python
+import numpy as np
+from batchstats import BatchNanSum
+
+m, n = 1_000_000, 50
+nan_ratio = 0.05
+n_batches = 17
+
+data = np.random.randn(m, n)
+num_nans = int(m * n * nan_ratio)
+nan_indices = np.random.choice(range(m * n), num_nans, replace=False)
+data.ravel()[nan_indices] = np.nan
+
+batchsum = BatchNanSum()
+for batch_data in np.array_split(data, n_batches):
+    batchsum.update_batch(batch=batch_data)
+np.allclose(np.nansum(data, axis=0), batchsum())
+>>> True
+```
+
 ## Documentation
 
 The documentation is available [here](https://batchstats.readthedocs.io/en/latest/).
