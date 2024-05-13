@@ -2,36 +2,7 @@ import string
 
 import numpy as np
 
-from ._misc import check_params
-
-
-class NoValidSamplesError(ValueError):
-    """
-    Error raised when there are no valid samples for calculation.
-    """
-    pass
-
-
-class UnequalSamplesNumber(ValueError):
-    """
-    Error raised when two batches have unequal lengths.
-    """
-    pass
-
-
-def any_nan(x, axis=None):
-    """
-    Check if there are any NaN values in the input array.
-
-    Args:
-        x (numpy.ndarray): Input array.
-        axis (int or tuple of ints, optional): Axis or axes along which to operate. Default is None.
-
-    Returns:
-        numpy.ndarray: Boolean array indicating NaN presence.
-
-    """
-    return np.isnan(np.add.reduce(array=x, axis=axis))
+from ._misc import NoValidSamplesError, UnequalSamplesNumber, any_nan, check_params
 
 
 class BatchStat:
