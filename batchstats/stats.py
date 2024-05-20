@@ -421,7 +421,7 @@ class BatchCov(BatchStat):
         else:
             if len(batch1) != len(batch2):
                 raise UnequalSamplesNumber("batch1 and batch2 don't have the same lengths.")
-            mask = ~any_nan(batch1) & ~any_nan(batch2)
+            mask = ~any_nan(batch1, axis=1) & ~any_nan(batch2, axis=1)
             n = mask.sum()
             self.n_samples += n
             if np.all(mask):
