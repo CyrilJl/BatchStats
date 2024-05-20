@@ -2,7 +2,8 @@ import string
 
 import numpy as np
 
-from ._misc import NoValidSamplesError, UnequalSamplesNumber, any_nan, check_params
+from ._misc import (NoValidSamplesError, UnequalSamplesNumber, any_nan,
+                    check_params)
 
 
 class BatchStat:
@@ -237,6 +238,46 @@ class BatchMean(BatchStat):
             raise NoValidSamplesError("No valid samples for calculating mean.")
         else:
             return self.mean.copy()
+
+
+class BatchPeakToPeak(BatchStat):
+    """
+    Class for calculating the peak-to-peak (max - min) of batches of data.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.batchmax = BatchMax()
+        self.batchmin = BatchMin()
+
+    def update_batch(self, batch, assume_valid=False):
+        """
+        Update the peak-to-peak with a new batch of data.
+
+        Args:
+            batch (numpy.ndarray): Input batch.
+            assume_valid (bool, optional): If True, assumes all elements in the batch are valid. Default is False.
+
+        Returns:
+            BatchPeakToPeak: Updated BatchPeakToPeak object.
+
+        """
+        self.batchmax.update_batch(batch, assume_valid=assume_valid)
+        self.batchmin.update_batch(batch, assume_valid=assume_valid)
+        return self
+
+    def __call__(self) -> np.ndarray:
+        """
+        Calculate the peak-to-peak.
+
+        Returns:
+            numpy.ndarray: Peak-to-peak of the batches.
+
+        Raises:
+            NoValidSamplesError: If no valid samples are available.
+
+        """
+        return self.batchmax() - self.batchmin()
 
 
 class BatchVar(BatchMean):

@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 
-from batchstats import BatchCov, BatchMax, BatchMean, BatchMin, BatchSum, BatchVar
+from batchstats import (BatchCov, BatchMax, BatchMean, BatchMin,
+                        BatchPeakToPeak, BatchSum, BatchVar)
 
 
 @pytest.fixture
@@ -48,6 +49,16 @@ def test_mean(data, n_batches):
     for batch_data in np.array_split(data, n_batches):
         batchmean.update_batch(batch=batch_data)
     batch_stat = batchmean()
+    assert np.allclose(true_stat, batch_stat)
+
+
+def test_ptp(data, n_batches):
+    true_stat = np.ptp(data, axis=0)
+
+    batchptp = BatchPeakToPeak()
+    for batch_data in np.array_split(data, n_batches):
+        batchptp.update_batch(batch=batch_data)
+    batch_stat = batchptp()
     assert np.allclose(true_stat, batch_stat)
 
 
