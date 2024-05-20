@@ -73,12 +73,13 @@ np.allclose(true_sum, batchsum()), batchsum().shape
 
 ## Available Classes/Stats
 
-- `BatchCov`: Compute the covariance matrix of two datasets (not necessarily square).
-- `BatchMax`: Compute the maximum value.
-- `BatchMean`: Compute the mean.
-- `BatchMin`: Compute the minimum value.
-- `BatchSum`: Compute the sum.
-- `BatchVar`: Compute the variance.
+- `BatchCov`: Compute the covariance matrix of two datasets (not necessarily square)
+- `BatchMax`: Compute the maximum value (associated to `np.max`)
+- `BatchMean`: Compute the mean (associated to `np.mean`)
+- `BatchMin`: Compute the minimum value (associated to `np.min`)
+- `BatchPeakToPeak`: Compute maximum - minimum value (associated to `np.ptp`)
+- `BatchSum`: Compute the sum (associated to `np.sum`)
+- `BatchVar`: Compute the variance (associated to `np.var`)
 
 Each class is tested against numpy results to ensure accuracy. For example:
 
