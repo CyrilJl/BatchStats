@@ -2,8 +2,7 @@ import string
 
 import numpy as np
 
-from ._misc import (NoValidSamplesError, UnequalSamplesNumber, any_nan,
-                    check_params)
+from ._misc import NoValidSamplesError, UnequalSamplesNumber, any_nan, check_params
 
 
 class BatchStat:
@@ -380,6 +379,43 @@ class BatchVar(BatchMean):
         return (self.n_samples / (self.n_samples - self.ddof)) * self.var
 
 
+class BatchStd(BatchStat):
+    """Class for calculating the standard deviation of batches of data.
+
+    Args:
+        ddof (int, optional): Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
+    """
+
+    def __init__(self, ddof=0):
+        super().__init__()
+        self.var = BatchVar(ddof=ddof)
+
+    def update_batch(self, batch, assume_valid=False):
+        """Update the standard deviation with a new batch of data.
+
+        Args:
+            batch (numpy.ndarray): Input batch.
+            assume_valid (bool, optional): If True, assumes all elements in the batch are valid. Default is False.
+
+        Returns:
+            BatchStd: Updated BatchStd object.
+        """
+        batch = self._process_batch(batch=batch, assume_valid=assume_valid)
+        self.var.update_batch(batch=batch, assume_valid=True)
+        return self
+
+    def __call__(self) -> np.ndarray:
+        """Calculate the standard deviation.
+
+        Returns:
+            numpy.ndarray: Standard deviation of the batches.
+
+        Raises:
+            NoValidSamplesError: If no valid samples are available.
+        """
+        return np.sqrt(self.var())
+
+
 class BatchCov(BatchStat):
     """
     Class for calculating the covariance of batches of data.
@@ -475,4 +511,5 @@ class BatchCov(BatchStat):
         """
         if self.cov is None:
             raise NoValidSamplesError("No valid samples for calculating covariance.")
+        return self.n_samples/(self.n_samples - self.ddof)*self.cov
         return self.n_samples/(self.n_samples - self.ddof)*self.cov
