@@ -78,7 +78,7 @@ np.allclose(true_sum, batchsum()), batchsum().shape
 - `BatchMean`: Compute the mean (associated to `np.mean`)
 - `BatchMin`: Compute the minimum value (associated to `np.min`)
 - `BatchPeakToPeak`: Compute maximum - minimum value (associated to `np.ptp`)
-- `BatchStd`: Compute the variance (associated to `np.std`)
+- `BatchStd`: Compute the standard deviation (associated to `np.std`)
 - `BatchSum`: Compute the sum (associated to `np.sum`)
 - `BatchVar`: Compute the variance (associated to `np.var`)
 
