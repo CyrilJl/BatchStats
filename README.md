@@ -1,4 +1,5 @@
-[![PyPI Version](https://img.shields.io/pypi/v/batchstats.svg)](https://pypi.org/project/batchstats/)
+[![PyPI Version](https://img.shields.io/pypi/v/batchstats.svg)](https://pypi.org/project/batchstats/) [![conda Version](
+https://anaconda.org/conda-forge/batchstats/badges/version.svg)]([https://pypi.org/project/batchstats/])
 
 # <img src="https://raw.githubusercontent.com/CyrilJl/BatchStats/main/docs/source/_static/logo_batchstats.svg" alt="Logo BatchStats" width="56.5" height="35"> BatchStats: Efficient Batch Statistics Computation in Python
 
