@@ -9,8 +9,16 @@ https://anaconda.org/conda-forge/batchstats/badges/version.svg)]([https://pypi.o
 
 You can install `batchstats` using pip:
 
-```
+``` console
 pip install batchstats
+```
+The package is also available on conda-forge:
+``` console
+conda install -c conda-forge batchstats
+```
+
+``` console
+mamba install batchstats
 ```
 
 ## Usage
