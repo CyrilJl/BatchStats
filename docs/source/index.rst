@@ -4,6 +4,9 @@ BatchStats's documentation
 .. image:: https://img.shields.io/pypi/v/batchstats.svg
     :target: https://pypi.org/project/batchstats/
 
+.. image:: https://anaconda.org/conda-forge/batchstats/badges/version.svg
+    :target: https://anaconda.org/conda-forge/batchstats
+
 .. toctree::
    :hidden:
    :maxdepth: 1   
