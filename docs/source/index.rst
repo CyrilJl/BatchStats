@@ -55,7 +55,9 @@ Available Classes/Stats
 - ``BatchMax``: Compute the maximum value.
 - ``BatchMean``: Compute the mean.
 - ``BatchMin``: Compute the minimum value.
+- ``BatchPeakToPeak``: Compute the difference between maximum and minimum.
 - ``BatchSum``: Compute the sum.
+- ``BatchStd``: Compute the standard deviation.
 - ``BatchVar``: Compute the variance.
 
 For more details on usage and available classes, please refer to the documentation.
