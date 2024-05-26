@@ -10,7 +10,7 @@ The class ``BatchStat`` is the parent class from which other classes inherit. It
 The following classes inherit from ``BatchStat``, and enable the user to compute various statistics over batch-accessed data:
 
 .. automodule:: batchstats
-    :members: BatchCov, BatchMax, BatchMean, BatchMin, BatchSum, BatchVar
+    :members: BatchCov, BatchMax, BatchMean, BatchMin, BatchSum, BatchVar, BatchStd, BatchPeakToPeak
     :undoc-members:
     :show-inheritance:
 
