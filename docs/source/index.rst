@@ -51,6 +51,8 @@ Here's an example of how to use ``batchstats`` to compute batch mean and varianc
     print("Batch Mean:", batchmean())
     print("Batch Variance:", batchvar())
 
+``batchstats`` relies on two main methods: ``update_batch`` for processing a batch of data, and ``__call__`` for computing the statistic that represents all the data fed to the class via ``update_batch``.
+
 ``batchstats`` is also flexible in terms of input shapes. By default, statistics are applied along the first axis: the first dimension representing the samples and the remaining dimensions representing the features:
 
 .. code-block:: python
