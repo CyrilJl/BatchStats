@@ -3,48 +3,7 @@ import string
 import numpy as np
 
 from ._misc import NoValidSamplesError, UnequalSamplesNumber, any_nan, check_params
-
-
-class BatchStat:
-    """
-    Base class for calculating statistics over batches of data.
-
-    Attributes:
-        n_samples (int): Total number of samples processed.
-
-    """
-
-    def __init__(self):
-        self.n_samples = 0
-
-    def _process_batch(self, batch, assume_valid=False):
-        """
-        Process the input batch, handling NaN values if necessary.
-
-        Args:
-            batch (numpy.ndarray): Input batch.
-            assume_valid (bool, optional): If True, assumes all elements in the batch are valid. Default is False.
-
-        Returns:
-            numpy.ndarray: Processed batch.
-
-        """
-        batch = np.atleast_2d(np.asarray(batch))
-        if assume_valid:
-            self.n_samples += len(batch)
-            return batch
-        else:
-            axis = tuple(range(1, batch.ndim))
-            nan_mask = any_nan(batch, axis=axis)
-            if nan_mask.any():
-                valid_batch = batch[~nan_mask]
-            else:
-                valid_batch = batch
-            self.n_samples += len(valid_batch)
-            return valid_batch
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}()"
+from .core import BatchStat
 
 
 class BatchSum(BatchStat):
@@ -53,8 +12,8 @@ class BatchSum(BatchStat):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, axis=0):
+        super().__init__(axis=axis)
         self.sum = None
 
     def update_batch(self, batch, assume_valid=False):
@@ -73,9 +32,9 @@ class BatchSum(BatchStat):
         n = len(valid_batch)
         if n > 0:
             if self.sum is None:
-                self.sum = np.sum(a=valid_batch, axis=0)
+                self.sum = np.sum(a=valid_batch, axis=self.axis)
             else:
-                self.sum += np.sum(a=valid_batch, axis=0)
+                self.sum += np.sum(a=valid_batch, axis=self.axis)
         return self
 
     def __call__(self) -> np.ndarray:
@@ -101,8 +60,8 @@ class BatchMax(BatchStat):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, axis=0):
+        super().__init__(axis=axis)
         self.max = None
 
     def update_batch(self, batch, assume_valid=False):
@@ -121,9 +80,9 @@ class BatchMax(BatchStat):
         n = len(valid_batch)
         if n > 0:
             if self.max is None:
-                self.max = np.max(valid_batch, axis=0)
+                self.max = np.max(valid_batch, axis=self.axis)
             else:
-                np.maximum(self.max, np.max(valid_batch, axis=0), out=self.max)
+                np.maximum(self.max, np.max(valid_batch, axis=self.axis), out=self.max)
         return self
 
     def __call__(self) -> np.ndarray:
@@ -149,8 +108,8 @@ class BatchMin(BatchStat):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, axis=0):
+        super().__init__(axis=axis)
         self.min = None
 
     def update_batch(self, batch, assume_valid=False):
@@ -169,9 +128,9 @@ class BatchMin(BatchStat):
         n = len(valid_batch)
         if n > 0:
             if self.min is None:
-                self.min = np.min(valid_batch, axis=0)
+                self.min = np.min(valid_batch, axis=self.axis)
             else:
-                np.minimum(self.min, np.min(valid_batch, axis=0), out=self.min)
+                np.minimum(self.min, np.min(valid_batch, axis=self.axis), out=self.min)
         return self
 
     def __call__(self) -> np.ndarray:
@@ -197,8 +156,8 @@ class BatchMean(BatchStat):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, axis=0):
+        super().__init__(axis=axis)
         self.mean = None
 
     def update_batch(self, batch, assume_valid=False):
@@ -217,9 +176,9 @@ class BatchMean(BatchStat):
         n = len(valid_batch)
         if n > 0:
             if self.mean is None:
-                self.mean = np.mean(valid_batch, axis=0)
+                self.mean = np.mean(valid_batch, axis=self.axis)
             else:
-                self.mean = ((self.n_samples - n) * self.mean + np.sum(valid_batch, axis=0)) / self.n_samples
+                self.mean = ((self.n_samples - n) * self.mean + np.sum(valid_batch, axis=self.axis)) / self.n_samples
         return self
 
     def __call__(self) -> np.ndarray:
@@ -244,10 +203,10 @@ class BatchPeakToPeak(BatchStat):
     Class for calculating the peak-to-peak (max - min) of batches of data.
     """
 
-    def __init__(self):
-        super().__init__()
-        self.batchmax = BatchMax()
-        self.batchmin = BatchMin()
+    def __init__(self, axis=0):
+        super().__init__(axis=axis)
+        self.batchmax = BatchMax(axis=axis)
+        self.batchmin = BatchMin(axis=axis)
 
     def update_batch(self, batch, assume_valid=False):
         """
@@ -287,9 +246,9 @@ class BatchVar(BatchMean):
         ddof (int, optional): Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
     """
 
-    def __init__(self, ddof=0):
-        super().__init__()
-        self.mean = BatchMean()
+    def __init__(self, axis=0, ddof=0):
+        super().__init__(axis=axis)
+        self.mean = BatchMean(axis=axis)
         self.var = None
         self.ddof = check_params(param=ddof, types=int)
 
@@ -386,9 +345,9 @@ class BatchStd(BatchStat):
         ddof (int, optional): Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
     """
 
-    def __init__(self, ddof=0):
-        super().__init__()
-        self.var = BatchVar(ddof=ddof)
+    def __init__(self, axis=0, ddof=0):
+        super().__init__(axis=axis)
+        self.var = BatchVar(axis=axis, ddof=ddof)
 
     def update_batch(self, batch, assume_valid=False):
         """Update the standard deviation with a new batch of data.
@@ -511,5 +470,4 @@ class BatchCov(BatchStat):
         """
         if self.cov is None:
             raise NoValidSamplesError("No valid samples for calculating covariance.")
-        return self.n_samples/(self.n_samples - self.ddof)*self.cov
         return self.n_samples/(self.n_samples - self.ddof)*self.cov
