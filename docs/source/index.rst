@@ -68,7 +68,7 @@ For more details on usage and available classes, please refer to the documentati
 Performance
 -----------
 
-In addition to result accuracy, much attention has been given to computation times and memory usage. For example, calculating the variance using `batchstats` consumes less RAM and is faster than `numpy.var`:
+In addition to result accuracy, much attention has been given to computation times and memory usage. For example, calculating the variance using ``batchstats`` consumes less RAM and is faster than ``numpy.var``:
 
 .. code-block:: python
 
