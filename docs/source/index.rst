@@ -119,13 +119,23 @@ In addition to result accuracy, much attention has been given to computation tim
     from batchstats import BatchVar
 
     data = np.random.randn(100_000, 1000)
+    print(data.nbytes/2**20)
+    >>> 762.939453125
 
     %memit a = np.var(data, axis=0)
-    %memit b = BatchVar().update_batch(data)()
+    >>> peak memory: 1604.63 MiB, increment: 763.35 MiB
+
+    %memit b = BatchVar().update_batch(data)()    
+    >>> peak memory: 842.62 MiB, increment: 0.91 MiB
+
     np.allclose(a, b)
+    >>> True
 
     %timeit a = np.var(data, axis=0)
-    %timeit b = BatchVar().update_batch(data)()
+    >>> 510 ms ± 111 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    
+    %timeit b = BatchVar().update_batch(data)()    
+    >>> 306 ms ± 5.09 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
 NaN handling possibility
 ------------------------
