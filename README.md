@@ -62,7 +62,7 @@ np.allclose(true_cov, batchcov()), batchcov().shape
 >>> (True, (100, 50))
 ```
 
-`batchstats` is also flexible in terms of input shapes. By default, statistics are applied on the first axis: the first dimension representing the samples and the remaining dimensions representing the features:
+`batchstats` is also flexible in terms of input shapes. By default, statistics are applied along the first axis: the first dimension representing the samples and the remaining dimensions representing the features:
 
 ```python
 import numpy as np
@@ -80,7 +80,7 @@ np.allclose(true_sum, batchsum()), batchsum().shape
 >>> (True, (80, 90))
 ```
 
-But as in the ``numpy`` associated functions, the user can specify the reduction axis or axes:
+However, similar to the associated functions in `numpy`, users can specify the reduction axis or axes:
 
 ```python
 import numpy as np
