@@ -51,6 +51,45 @@ Here's an example of how to use ``batchstats`` to compute batch mean and varianc
     print("Batch Mean:", batchmean())
     print("Batch Variance:", batchvar())
 
+``batchstats`` is also flexible in terms of input shapes. By default, statistics are applied along the first axis: the first dimension representing the samples and the remaining dimensions representing the features:
+
+.. code-block:: python
+
+    import numpy as np
+    from batchstats import BatchSum
+
+    data = np.random.randn(10_000, 80, 90)
+    n_batches = 7
+
+    batchsum = BatchSum()
+    for batch_data in np.array_split(data, n_batches):
+        batchsum.update_batch(batch_data)
+
+    true_sum = np.sum(data, axis=0)
+    np.allclose(true_sum, batchsum()), batchsum().shape
+    >>> (True, (80, 90))
+
+However, similar to the associated functions in ``numpy``, users can specify the reduction axis or axes:
+
+.. code-block:: python
+    import numpy as np
+    from batchstats import BatchMean
+
+    data = [np.random.randn(24, 7, 128) for _ in range(100)]
+
+    batchmean = BatchMean(axis=(0, 2))
+    for batch in data:
+        batchmean.update_batch(batch)
+    batchmean().shape
+    >>> (7,)
+
+    batchmean = BatchMean(axis=2)
+    for batch in data:
+        batchmean.update_batch(batch)
+    batchmean().shape
+    >>> (24, 7)
+
+
 Available Classes/Stats
 -----------------------
 
