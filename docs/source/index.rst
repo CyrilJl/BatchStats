@@ -51,7 +51,7 @@ Here's an example of how to use ``batchstats`` to compute batch mean and varianc
     print("Batch Mean:", batchmean())
     print("Batch Variance:", batchvar())
 
-``batchstats`` relies on two main methods: ``update_batch`` for processing a batch of data, and ``__call__`` for computing the statistic that represents all the data fed to the class via ``update_batch``.
+``batchstats`` relies on two main methods: ``update_batch`` for processing a batch of data, and ``__call__`` for computing the statistic that represents all the data previously fed to the class via ``update_batch``.
 
 ``batchstats`` is also flexible in terms of input shapes. By default, statistics are applied along the first axis: the first dimension representing the samples and the remaining dimensions representing the features:
 
@@ -133,7 +133,7 @@ In addition to result accuracy, much attention has been given to computation tim
 
     %timeit a = np.var(data, axis=0)
     >>> 510 ms ± 111 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    
+
     %timeit b = BatchVar().update_batch(data)()    
     >>> 306 ms ± 5.09 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
