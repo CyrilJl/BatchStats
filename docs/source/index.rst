@@ -72,6 +72,7 @@ Here's an example of how to use ``batchstats`` to compute batch mean and varianc
 However, similar to the associated functions in ``numpy``, users can specify the reduction axis or axes:
 
 .. code-block:: python
+
     import numpy as np
     from batchstats import BatchMean
 
