@@ -9,7 +9,7 @@ BatchStats's documentation
 
 .. toctree::
    :hidden:
-   :maxdepth: 1   
+   :maxdepth: 1
 
    api_reference
    future
