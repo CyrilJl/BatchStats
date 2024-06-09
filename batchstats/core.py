@@ -1,6 +1,6 @@
 import numpy as np
 
-from ._misc import any_nan, check_params
+from ._misc import DifferentAxisError, DifferentShapesError, DifferentStatsError, any_nan, check_params
 
 
 class BatchStat:
@@ -50,6 +50,15 @@ class BatchStat:
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"
+
+    def merge_test(self, other, field: str):
+        if type(self) != type(other):
+            raise DifferentStatsError()
+        if self.axis != other.axis:
+            raise DifferentAxisError()
+        if hasattr(self, field) and hasattr(other, field):
+            if getattr(self, field).shape != getattr(other, field).shape:
+                raise DifferentShapesError()
 
 
 class BatchNanStat:

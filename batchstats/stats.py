@@ -53,6 +53,18 @@ class BatchSum(BatchStat):
         else:
             return self.sum.copy()
 
+    def __add__(self, other):
+        self.merge_test(other, field='sum')
+        if self.n_samples == 0:
+            return other
+        elif other.n_samples == 0:
+            return self
+        else:
+            ret = BatchSum(axis=self.axis)
+            ret.n_samples = self.n_samples + other.n_samples
+            ret.sum = self.sum + other.sum
+            return ret
+
 
 class BatchMax(BatchStat):
     """
@@ -100,6 +112,18 @@ class BatchMax(BatchStat):
             raise NoValidSamplesError("No valid samples for calculating max.")
         else:
             return self.max.copy()
+
+    def __add__(self, other):
+        self.merge_test(other, field='max')
+        if self.n_samples == 0:
+            return other
+        elif other.n_samples == 0:
+            return self
+        else:
+            ret = BatchMax(axis=self.axis)
+            ret.n_samples = self.n_samples + other.n_samples
+            ret.max = np.maximum(self.max, other.max)
+            return ret
 
 
 class BatchMin(BatchStat):
@@ -149,6 +173,18 @@ class BatchMin(BatchStat):
         else:
             return self.min.copy()
 
+    def __add__(self, other):
+        self.merge_test(other, field='min')
+        if self.n_samples == 0:
+            return other
+        elif other.n_samples == 0:
+            return self
+        else:
+            ret = BatchMin(axis=self.axis)
+            ret.n_samples = self.n_samples + other.n_samples
+            ret.max = np.minimum(self.max, other.max)
+            return ret
+
 
 class BatchMean(BatchStat):
     """
@@ -178,7 +214,8 @@ class BatchMean(BatchStat):
             if self.mean is None:
                 self.mean = np.mean(valid_batch, axis=self.axis)
             else:
-                self.mean = ((self.n_samples - n) * self.mean + np.sum(valid_batch, axis=self.axis)) / self.n_samples
+                mean_batch = np.mean(valid_batch, axis=self.axis)
+                self.mean = ((self.n_samples - n) * self.mean + np.sum(valid_batch-mean_batch, axis=self.axis) + n*mean_batch) / self.n_samples
         return self
 
     def __call__(self) -> np.ndarray:
@@ -196,6 +233,19 @@ class BatchMean(BatchStat):
             raise NoValidSamplesError("No valid samples for calculating mean.")
         else:
             return self.mean.copy()
+
+    def __add__(self, other):
+        self.merge_test(other, field='mean')
+        if self.n_samples == 0:
+            return other
+        elif other.n_samples == 0:
+            return self
+        else:
+            ret = BatchMean(axis=self.axis)
+            ret.n_samples = self.n_samples + other.n_samples
+            ret.mean = self.n_samples*self.mean + other.n_samples*other.mean
+            ret.mean /= ret.n_samples
+            return ret
 
 
 class BatchPeakToPeak(BatchStat):

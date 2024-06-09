@@ -7,13 +7,13 @@ from batchstats import BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak,
 @pytest.fixture
 def data():
     m, n = 1_000_000, 50
-    return np.random.randn(m, n)
+    return 1e1*np.random.randn(m, n) + 1e3
 
 
 @pytest.fixture
 def data_2d_features():
     m, n, o = 100_000, 50, 60
-    return np.random.randn(m, n, o)
+    return 1e1*np.random.randn(m, n, o) + 1e3
 
 
 @pytest.fixture

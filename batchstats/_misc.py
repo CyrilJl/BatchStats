@@ -20,6 +20,27 @@ class UnequalSamplesNumber(ValueError):
     pass
 
 
+class DifferentAxisError(ValueError):
+    """
+    Error raised when two BatchStats objects are merged but have different `axis`.
+    """
+    pass
+
+
+class DifferentShapesError(ValueError):
+    """
+    Error raised when two BatchStats objects are merged but have different shapes.
+    """
+    pass
+
+
+class DifferentStatsError(ValueError):
+    """
+    Error raised when two BatchStats objects are merged but hare not of the same type.
+    """
+    pass
+
+
 def any_nan(x, axis=None):
     """
     Check if there are any NaN values in the input array.

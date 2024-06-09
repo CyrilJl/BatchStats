@@ -1,5 +1,13 @@
 .. Future Development
 
+What's New ?
+============
+
+Version 0.4.1 (June 9, 2024)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Improved numerical stability of the ``BatchMean``'s algorithm, based on `Numerically Stable Parallel Computation of (Co-)Variance by Schubert and Gertz<https://ds.ifi.uni-heidelberg.de/files/Team/eschubert/publications/SSDBM18-covariance-authorcopy.pdf>`_
+
+
 Future Plans
 ============
 
