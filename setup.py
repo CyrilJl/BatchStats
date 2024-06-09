@@ -1,4 +1,3 @@
-import numpy as np
 from setuptools import find_packages, setup
 
 # Read version from the __init__.py file
