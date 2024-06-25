@@ -182,7 +182,7 @@ class BatchMin(BatchStat):
         else:
             ret = BatchMin(axis=self.axis)
             ret.n_samples = self.n_samples + other.n_samples
-            ret.max = np.minimum(self.max, other.max)
+            ret.min = np.minimum(self.min, other.min)
             return ret
 
 
@@ -521,3 +521,20 @@ class BatchCov(BatchStat):
         if self.cov is None:
             raise NoValidSamplesError("No valid samples for calculating covariance.")
         return self.n_samples/(self.n_samples - self.ddof)*self.cov
+
+    def __add__(self, other):
+        self.merge_test(other, field='cov')
+        if self.n_samples == 0:
+            return other
+        elif other.n_samples == 0:
+            return self
+        else:
+            ret = BatchCov(ddof=self.ddof)
+            ret.n_samples = self.n_samples + other.n_samples
+            ret.mean1 = self.mean1 + other.mean1
+            ret.mean2 = self.mean2 + other.mean2
+            ret.cov = self.n_samples*self.cov + other.n_samples*other.cov
+            ret.cov += self.n_samples*(self.mean1()-ret.mean1())[:, None]*(self.mean2()-ret.mean2())
+            ret.cov += other.n_samples*(other.mean1()-ret.mean1())[:, None]*(other.mean2()-ret.mean2())
+            ret.cov /= ret.n_samples
+            return ret
