@@ -4,4 +4,4 @@ from .stats import BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak, Bat
 __all__ = ['BatchCov', 'BatchMax', 'BatchMean', 'BatchMin', 'BatchPeakToPeak', 'BatchStat', 'BatchStd', 'BatchSum',
            'BatchVar', 'BatchNanMean', 'BatchNanStat', 'BatchNanSum']
 
-__version__ = '0.4.2'
+__version__ = '0.4.3'
