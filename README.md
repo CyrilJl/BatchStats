@@ -133,6 +133,29 @@ test_mean(data, n_batches)
 >>> True
 ```
 
+## Merging Two Objects
+
+In some cases, it is useful to process two different `BatchStats` objects from asynchronous I/O functions and then merge the statistics of both objects at the end. The `batchstats` library supports this functionality by allowing the simple addition of two objects. Under the hood, the necessary computations are performed to produce a resulting statistic that reflects the data from both input datasets, even imbalanced:
+
+```python
+import numpy as np
+from batchstats import BatchCov
+
+data = np.random.randn(25_000, 50)
+data1 = data[:10_000]
+data2 = data[10_000:]
+
+cov = BatchCov().update_batch(data)
+cov1 = BatchCov().update_batch(data1)
+cov2 = BatchCov().update_batch(data2)
+
+cov_merged = cov1 + cov2
+np.allclose(cov(), cov_merged())
+>>> True
+```
+
+The `__add__` method has been specifically overloaded to facilitate the merging of statistical objects in `batchstats`, including `BatchCov`, `BatchMax`, `BatchMean`, `BatchMin`, `BatchPeakToPeak`, `BatchStd`, `BatchSum`, and `BatchVar`.
+
 ## Performance
 
 In addition to result accuracy, much attention has been given to computation times and memory usage. Fun fact, calculating the variance using `batchstats` consumes little RAM while being faster than `numpy.var`:
