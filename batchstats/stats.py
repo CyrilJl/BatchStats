@@ -270,8 +270,9 @@ class BatchPeakToPeak(BatchStat):
             BatchPeakToPeak: Updated BatchPeakToPeak object.
 
         """
-        self.batchmax.update_batch(batch, assume_valid=assume_valid)
-        self.batchmin.update_batch(batch, assume_valid=assume_valid)
+        valid_batch = self._process_batch(batch=batch, assume_valid=assume_valid)
+        self.batchmax.update_batch(batch, assume_valid=True)
+        self.batchmin.update_batch(batch, assume_valid=True)
         return self
 
     def __call__(self) -> np.ndarray:
