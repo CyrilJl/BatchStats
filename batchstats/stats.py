@@ -287,6 +287,20 @@ class BatchPeakToPeak(BatchStat):
         """
         return self.batchmax() - self.batchmin()
 
+    def __add__(self, other):
+        self.batchmax.merge_test(other.batchmax, field='max')
+        self.batchmin.merge_test(other.batchmin, field='min')
+        if self.n_samples == 0:
+            return other
+        elif other.n_samples == 0:
+            return self
+        else:
+            ret = BatchPeakToPeak(axis=self.axis)
+            ret.n_samples = self.n_samples + other.n_samples
+            ret.batchmax = self.batchmax + other.batchmax
+            ret.batchmin = self.batchmin + other.batchmin
+            return ret
+
 
 class BatchVar(BatchMean):
     """
@@ -387,6 +401,24 @@ class BatchVar(BatchMean):
             raise NoValidSamplesError("No valid samples for calculating variance.")
         return (self.n_samples / (self.n_samples - self.ddof)) * self.var
 
+    def __add__(self, other):
+        self.merge_test(other, field='var')
+        if self.n_samples == 0:
+            return other
+        elif other.n_samples == 0:
+            return self
+        else:
+            ret = BatchVar(axis=self.axis, ddof=self.ddof)
+            ret.n_samples = self.n_samples + other.n_samples
+            ret.mean = self.mean + other.mean
+            ret.var = self.n_samples*self.var + other.n_samples*other.var
+
+            ret.var += self.n_samples*(self.mean()-ret.mean())**2
+            ret.var += other.n_samples*(other.mean()-ret.mean())**2
+
+            ret.var /= ret.n_samples
+            return ret
+
 
 class BatchStd(BatchStat):
     """Class for calculating the standard deviation of batches of data.
@@ -397,6 +429,7 @@ class BatchStd(BatchStat):
 
     def __init__(self, axis=0, ddof=0):
         super().__init__(axis=axis)
+        self.ddof = ddof
         self.var = BatchVar(axis=axis, ddof=ddof)
 
     def update_batch(self, batch, assume_valid=False):
@@ -423,6 +456,18 @@ class BatchStd(BatchStat):
             NoValidSamplesError: If no valid samples are available.
         """
         return np.sqrt(self.var())
+
+    def __add__(self, other):
+        self.var.merge_test(other.var, field='var')
+        if self.n_samples == 0:
+            return other
+        elif other.n_samples == 0:
+            return self
+        else:
+            ret = BatchStd(axis=self.axis, ddof=self.ddof)
+            ret.n_samples = self.n_samples + other.n_samples
+            ret.var = self.var + other.var
+            return ret
 
 
 class BatchCov(BatchStat):
