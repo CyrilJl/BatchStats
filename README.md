@@ -101,38 +101,6 @@ batchmean().shape
 >>> (24, 7)
 ```
 
-## Available Classes/Stats
-
-- `BatchCov`: Compute the covariance matrix of two datasets (not necessarily square)
-- `BatchMax`: Compute the maximum value (associated to `np.max`)
-- `BatchMean`: Compute the mean (associated to `np.mean`)
-- `BatchMin`: Compute the minimum value (associated to `np.min`)
-- `BatchPeakToPeak`: Compute maximum - minimum value (associated to `np.ptp`)
-- `BatchStd`: Compute the standard deviation (associated to `np.std`)
-- `BatchSum`: Compute the sum (associated to `np.sum`)
-- `BatchVar`: Compute the variance (associated to `np.var`)
-
-Each class is tested against numpy results to ensure accuracy. For example:
-
-```python
-import numpy as np
-from batchstats import BatchMean
-
-def test_mean(data, n_batches):
-    true_stat = np.mean(data, axis=0)
-
-    batchmean = BatchMean()
-    for batch_data in np.array_split(data, n_batches):
-        batchmean.update_batch(batch=batch_data)
-    batch_stat = batchmean()
-    return np.allclose(true_stat, batch_stat)
-
-data = np.random.randn(1_000_000, 50)
-n_batches = 31
-test_mean(data, n_batches)
->>> True
-```
-
 ## Merging Two Objects
 
 In some cases, it is useful to process two different `BatchStats` objects from asynchronous I/O functions and then merge the statistics of both objects at the end. The `batchstats` library supports this functionality by allowing the simple addition of two objects. Under the hood, the necessary computations are performed to produce a resulting statistic that reflects the data from both input datasets, even imbalanced:
@@ -167,17 +135,21 @@ from batchstats import BatchVar
 
 data = np.random.randn(100_000, 1000)
 print(data.nbytes/2**20)
+>>> 762.939453125
 
 %memit a = np.var(data, axis=0)
-%memit b = BatchVar().update_batch(data)()
-np.allclose(a, b)
->>> 762.939453125
 >>> peak memory: 1604.63 MiB, increment: 763.35 MiB
+
+%memit b = BatchVar().update_batch(data)()    
 >>> peak memory: 842.62 MiB, increment: 0.91 MiB
+
+np.allclose(a, b)
 >>> True
+
 %timeit a = np.var(data, axis=0)
-%timeit b = BatchVar().update_batch(data)()
 >>> 510 ms ± 111 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+
+%timeit b = BatchVar().update_batch(data)()    
 >>> 306 ms ± 5.09 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 ```
 
@@ -202,6 +174,38 @@ batchsum = BatchNanSum()
 for batch_data in np.array_split(data, n_batches):
     batchsum.update_batch(batch=batch_data)
 np.allclose(np.nansum(data, axis=0), batchsum())
+>>> True
+```
+
+## Available Classes/Stats
+
+- `BatchCov`: Compute the covariance matrix of two datasets (not necessarily square)
+- `BatchMax`: Compute the maximum value (associated to `np.max`)
+- `BatchMean`: Compute the mean (associated to `np.mean`)
+- `BatchMin`: Compute the minimum value (associated to `np.min`)
+- `BatchPeakToPeak`: Compute maximum - minimum value (associated to `np.ptp`)
+- `BatchStd`: Compute the standard deviation (associated to `np.std`)
+- `BatchSum`: Compute the sum (associated to `np.sum`)
+- `BatchVar`: Compute the variance (associated to `np.var`)
+
+Each class is tested against numpy results to ensure accuracy. For example:
+
+```python
+import numpy as np
+from batchstats import BatchMean
+
+def test_mean(data, n_batches):
+    true_stat = np.mean(data, axis=0)
+
+    batchmean = BatchMean()
+    for batch_data in np.array_split(data, n_batches):
+        batchmean.update_batch(batch=batch_data)
+    batch_stat = batchmean()
+    return np.allclose(true_stat, batch_stat)
+
+data = np.random.randn(1_000_000, 50)
+n_batches = 31
+test_mean(data, n_batches)
 >>> True
 ```
 

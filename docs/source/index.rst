@@ -92,20 +92,29 @@ However, similar to the associated functions in ``numpy``, users can specify the
     batchmean().shape
     >>> (24, 7)
 
+Merging Two Objects
+-------------------
 
-Available Classes/Stats
------------------------
+In some cases, it is useful to process two different `BatchStats` objects from asynchronous I/O functions and then merge the statistics of both objects at the end. The `batchstats` library supports this functionality by allowing the simple addition of two objects. Under the hood, the necessary computations are performed to produce a resulting statistic that reflects the data from both input datasets, even imbalanced:
 
-- ``BatchCov``: Compute the covariance matrix of two datasets (not necessarily square).
-- ``BatchMax``: Compute the maximum value.
-- ``BatchMean``: Compute the mean.
-- ``BatchMin``: Compute the minimum value.
-- ``BatchPeakToPeak``: Compute the difference between maximum and minimum.
-- ``BatchSum``: Compute the sum.
-- ``BatchStd``: Compute the standard deviation.
-- ``BatchVar``: Compute the variance.
+.. code-block:: python
 
-For more details on usage and available classes, please refer to the documentation.
+    import numpy as np
+    from batchstats import BatchCov
+
+    data = np.random.randn(25_000, 50)
+    data1 = data[:10_000]
+    data2 = data[10_000:]
+
+    cov = BatchCov().update_batch(data)
+    cov1 = BatchCov().update_batch(data1)
+    cov2 = BatchCov().update_batch(data2)
+
+    cov_merged = cov1 + cov2
+    np.allclose(cov(), cov_merged())
+    >>> True
+
+The `__add__` method has been specifically overloaded to facilitate the merging of statistical objects in `batchstats`, including `BatchCov`, `BatchMax`, `BatchMean`, `BatchMin`, `BatchPeakToPeak`, `BatchStd`, `BatchSum`, and `BatchVar`.
 
 Performance
 -----------
@@ -161,3 +170,15 @@ While the previous ``Batch*`` classes exclude every sample containing at least o
         batchsum.update_batch(batch=batch_data)
     np.allclose(np.nansum(data, axis=0), batchsum())
     >>> True
+
+Available Classes/Stats
+-----------------------
+
+- ``BatchCov``: Compute the covariance matrix of two datasets (not necessarily square).
+- ``BatchMax``: Compute the maximum value.
+- ``BatchMean``: Compute the mean.
+- ``BatchMin``: Compute the minimum value.
+- ``BatchPeakToPeak``: Compute the difference between maximum and minimum.
+- ``BatchSum``: Compute the sum.
+- ``BatchStd``: Compute the standard deviation.
+- ``BatchVar``: Compute the variance.
