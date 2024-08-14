@@ -3,7 +3,7 @@ https://anaconda.org/conda-forge/batchstats/badges/version.svg)](https://anacond
 [![Unit tests](https://github.com/CyrilJl/BatchStats/actions/workflows/pytest.yml/badge.svg)](https://github.com/CyrilJl/BatchStats/actions/workflows/pytest.yml)
 # <img src="https://raw.githubusercontent.com/CyrilJl/BatchStats/main/docs/source/_static/logo_batchstats.svg" alt="Logo BatchStats" width="56.5" height="35"> BatchStats: Efficient Batch Statistics Computation in Python
 
-`batchstats` is a Python package designed to compute various statistics of data that arrive batch by batch, making it suitable for streaming input or data too large to fit in memory.
+`batchstats`  is a Python package designed to compute various statistics of data that arrive batch by batch (in chunks or segments), making it suitable for streaming input or data too large to fit in memory. The classes and methods implemented in batchstats are based on online algorithms—algorithms that process input piece-by-piece in a serial fashion, without requiring the entire input to be available from the start. For covariance and variance calculations, the package employs the celebrated Welford's online algorithm. Special care has been given to ensuring numerical precision, optimizing computation time, and minimizing memory usage.
 
 ## Installation
 
