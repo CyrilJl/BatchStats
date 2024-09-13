@@ -37,6 +37,3 @@ html_context = {"default_mode": "light"}
 html_sidebars = {"**": []}
 
 pygments_style = 'vs'
-
-favicons = ["favicon-16x16.png",
-            "favicon-32x32.png"]
