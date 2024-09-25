@@ -212,31 +212,70 @@ test_mean(data, n_batches)
 
 ## Machine Learning Application
 
-Fitting a simple linear regression on chunked/streaming data can be done with the help of `BatchCov` for instance:
+Fitting a simple linear regression on chunked or streaming data can be done using `BatchCov`, for example:
 
 ```python
 import numpy as np
+from sklearn.base import RegressorMixin, BaseEstimator
 from batchstats import BatchCov
+
+class IncrementalLinearRegression(RegressorMixin, BaseEstimator):
+    """
+    IncrementalLinearRegression performs linear regression in an incremental way using batches of data.
+    It uses BatchCov to accumulate covariance and mean information for incremental updates.
+    """
+    def __init__(self):
+        self.cov_ = BatchCov()
+
+    def partial_fit(self, X, y):
+        self.cov_.update_batch(np.c_[X, y])
+        return self
+
+    def _compute_parameters(self):
+        means = self.cov_.mean1()
+        cov_matrix = self.cov_()
+        # Calculate the coefficients
+        coef_ = np.linalg.inv(cov_matrix[:-1, :-1]) @ cov_matrix[-1][:-1]
+        # Calculate the intercept
+        intercept_ = means[-1] - coef_ @ means[:-1]
+        return coef_, intercept_
+
+    def fit(self, X, y):
+        return self.partial_fit(X, y)
+
+    @property
+    def coef_(self):
+        coef_, _ = self._compute_parameters()
+        return coef_
+
+    @property
+    def intercept_(self):
+        _, intercept_ = self._compute_parameters()
+        return intercept_
+
+    def predict(self, X):
+        return X @ self.coef_ + self.intercept_
+
+# Generate a synthetic regression dataset
 from sklearn.datasets import make_regression
-from sklearn.linear_model import LinearRegression
 
 X, y = make_regression(n_samples=100_000, n_features=50, n_informative=35, bias=8)
-X[:, 8] += 5
+X[:, 8] += 5  # Adding a shift to feature 8 for testing purposes
 
-# sklearn version with full data
-linear = LinearRegression().fit(X, y)
+model = IncrementalLinearRegression()
 
-# chunked case
-cov = BatchCov()
+# Simulate updating the model in batches (e.g., 17 batches)
 n_batches = 17
 for index in np.array_split(np.arange(len(X)), n_batches):
-    cov.update_batch(np.c_[X[index], y[index, None]])
-means = cov.mean1()
-cov = cov()
-coef_batch = np.linalg.inv(cov[:-1, :-1])@cov[-1][:-1]
-intercept_batch = means[-1] - coef_batch@means[:-1]
+    model.partial_fit(X[index], y[index])
 
-np.allclose(linear.coef_, coef_batch), np.allclose(linear.intercept_, intercept_batch)
+# Compare with sklearn's LinearRegression model (using full data)
+from sklearn.linear_model import LinearRegression
+
+linear = LinearRegression().fit(X, y)
+
+# Check if the results match (coefficients and intercept)
+np.allclose(linear.coef_, model.coef_), np.allclose(linear.intercept_, model.intercept_)
 >>> (True, True)
 ```
 
