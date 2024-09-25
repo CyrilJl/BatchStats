@@ -221,8 +221,9 @@ from batchstats import BatchCov
 
 class IncrementalLinearRegression(RegressorMixin, BaseEstimator):
     """
-    IncrementalLinearRegression performs linear regression in an incremental way using batches of data.
-    It uses BatchCov to accumulate covariance and mean information for incremental updates.
+    IncrementalLinearRegression performs linear regression in an incremental way
+    using batches of data. It uses BatchCov to accumulate covariance and mean
+    information for incremental updates.
     """
     def __init__(self):
         self.cov_ = BatchCov()
