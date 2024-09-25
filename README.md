@@ -210,6 +210,36 @@ test_mean(data, n_batches)
 >>> True
 ```
 
+## Machine Learning Application
+
+Fitting a simple linear regression on chunked/streaming data can be done with the help of `BatchCov` for instance:
+
+```python
+import numpy as np
+from batchstats import BatchCov
+from sklearn.datasets import make_regression
+from sklearn.linear_model import LinearRegression
+
+X, y = make_regression(n_samples=100_000, n_features=50, n_informative=35, bias=8)
+X[:, 8] += 5
+
+# sklearn version with full data
+linear = LinearRegression().fit(X, y)
+
+# chunked case
+cov = BatchCov()
+n_batches = 17
+for index in np.array_split(np.arange(len(X)), n_batches):
+    cov.update_batch(np.c_[X[index], y[index, None]])
+means = cov.mean1()
+cov = cov()
+coef_batch = np.linalg.inv(cov[:-1, :-1])@cov[-1][:-1]
+intercept_batch = means[-1] - coef_batch@means[:-1]
+
+np.allclose(linear.coef_, coef_batch), np.allclose(linear.intercept_, intercept_batch)
+>>> (True, True)
+```
+
 ## Documentation
 
 The documentation is available [here](https://batchstats.readthedocs.io/en/latest/).
