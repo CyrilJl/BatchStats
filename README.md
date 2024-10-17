@@ -1,5 +1,6 @@
 # <img src="https://raw.githubusercontent.com/CyrilJl/BatchStats/main/docs/source/_static/logo_batchstats.svg" alt="Logo BatchStats" width="200" height="150" align="right"> BatchStats
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/449811763b0e46f7bae8897b843bf3f7)](https://app.codacy.com/gh/CyrilJl/BatchStats?utm_source=github.com&utm_medium=referral&utm_content=CyrilJl/BatchStats&utm_campaign=Badge_Grade)
 [![PyPI Version](https://img.shields.io/pypi/v/batchstats.svg)](https://pypi.org/project/batchstats/) [![conda Version](
 https://anaconda.org/conda-forge/batchstats/badges/version.svg)](https://anaconda.org/conda-forge/batchstats) [![Documentation Status](https://img.shields.io/readthedocs/batchstats?logo=read-the-docs)](https://batchstats.readthedocs.io/en/latest/?badge=latest)
 [![Unit tests](https://github.com/CyrilJl/BatchStats/actions/workflows/pytest.yml/badge.svg)](https://github.com/CyrilJl/BatchStats/actions/workflows/pytest.yml)
