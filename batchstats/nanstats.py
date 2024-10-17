@@ -29,7 +29,6 @@ class BatchNanSum(BatchNanStat):
 
         """
         batch = self._process_batch(batch)
-        axis = tuple(range(1, batch.ndim))
         if self.sum is None:
             self.sum = np.nansum(batch, axis=self.axis)
         else:
