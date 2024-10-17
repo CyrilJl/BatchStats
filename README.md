@@ -282,7 +282,7 @@ np.allclose(linear.coef_, model.coef_), np.allclose(linear.intercept_, model.int
 
 ## Documentation
 
-The documentation is available [here](https://batchstats.readthedocs.io/en/latest/).
+The documentation is available [here](batchstats.readthedocs.io).
 
 ## Requesting Additional Statistics
 
