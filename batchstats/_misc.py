@@ -10,35 +10,30 @@ class NoValidSamplesError(ValueError):
     """
     Error raised when there are no valid samples for calculation.
     """
-    pass
 
 
 class UnequalSamplesNumber(ValueError):
     """
     Error raised when two batches have unequal lengths.
     """
-    pass
 
 
 class DifferentAxisError(ValueError):
     """
     Error raised when two BatchStats objects are merged but have different `axis`.
     """
-    pass
 
 
 class DifferentShapesError(ValueError):
     """
     Error raised when two BatchStats objects are merged but have different shapes.
     """
-    pass
 
 
 class DifferentStatsError(ValueError):
     """
     Error raised when two BatchStats objects are merged but hare not of the same type.
     """
-    pass
 
 
 def any_nan(x, axis=None):
