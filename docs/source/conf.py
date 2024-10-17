@@ -16,7 +16,6 @@ sys.path.insert(0, str(parent_dir))
 
 
 project = 'batchstats'
-copyright = '2024, Cyril Joly'
 author = 'Cyril Joly'
 
 # -- General configuration ---------------------------------------------------
