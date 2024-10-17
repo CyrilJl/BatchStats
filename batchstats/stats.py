@@ -353,7 +353,8 @@ class BatchVar(BatchMean):
         """
         alphabet = string.ascii_lowercase
         ndim = v.ndim
-        assert p.ndim == u.ndim == ndim-1
+        if not (p.ndim == u.ndim == ndim - 1):
+            raise ValueError(f"Expected 'p' and 'u' to be {ndim-1}D arrays, but got {p.ndim}D and {u.ndim}D arrays respectively.")
         ij, j = alphabet[:ndim], alphabet[1:ndim]
 
         ret = np.einsum(f'{ij},{ij}->{j}', v, v)
