@@ -1,8 +1,8 @@
-# <img src="https://raw.githubusercontent.com/CyrilJl/BatchStats/main/docs/source/_static/logo_batchstats.svg" alt="Logo BatchStats" width="200" height="150" align="right"> BatchStats
-
 [![PyPI Version](https://img.shields.io/pypi/v/batchstats.svg)](https://pypi.org/project/batchstats/) [![conda Version](
 https://anaconda.org/conda-forge/batchstats/badges/version.svg)](https://anaconda.org/conda-forge/batchstats) [![Documentation Status](https://img.shields.io/readthedocs/batchstats?logo=read-the-docs)](https://batchstats.readthedocs.io/en/latest/?badge=latest)
 [![Unit tests](https://github.com/CyrilJl/BatchStats/actions/workflows/pytest.yml/badge.svg)](https://github.com/CyrilJl/BatchStats/actions/workflows/pytest.yml) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/59da873e81d84d9281c58c1a09bc72e9)](https://app.codacy.com/gh/CyrilJl/BatchStats/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
+# <img src="https://raw.githubusercontent.com/CyrilJl/BatchStats/main/docs/source/_static/logo_batchstats.svg" alt="Logo BatchStats" width="200" height="150" align="right"> BatchStats
 
 `batchstats`  is a Python package designed to compute various statistics of data that arrive batch by batch (in chunks or segments), making it suitable for streaming input or data too large to fit in memory. The classes and methods implemented in batchstats are based on online algorithms—algorithms that process input piece-by-piece in a serial fashion, without requiring the entire input to be available from the start. For covariance and variance calculations, the package employs the celebrated Welford's online algorithm. Special care has been given to ensuring numerical precision, optimizing computation time, and minimizing memory usage.
 
