@@ -54,7 +54,7 @@ class BatchSum(BatchStat):
             return self.sum.copy()
 
     def __add__(self, other):
-        self.merge_test(other, field='sum')
+        self.merge_test(other, field="sum")
         if self.n_samples == 0:
             return other
         elif other.n_samples == 0:
@@ -114,7 +114,7 @@ class BatchMax(BatchStat):
             return self.max.copy()
 
     def __add__(self, other):
-        self.merge_test(other, field='max')
+        self.merge_test(other, field="max")
         if self.n_samples == 0:
             return other
         elif other.n_samples == 0:
@@ -174,7 +174,7 @@ class BatchMin(BatchStat):
             return self.min.copy()
 
     def __add__(self, other):
-        self.merge_test(other, field='min')
+        self.merge_test(other, field="min")
         if self.n_samples == 0:
             return other
         elif other.n_samples == 0:
@@ -215,7 +215,9 @@ class BatchMean(BatchStat):
                 self.mean = np.mean(valid_batch, axis=self.axis)
             else:
                 mean_batch = np.mean(valid_batch, axis=self.axis)
-                self.mean = ((self.n_samples - n) * self.mean + np.sum(valid_batch-mean_batch, axis=self.axis) + n*mean_batch) / self.n_samples
+                self.mean = (
+                    (self.n_samples - n) * self.mean + np.sum(valid_batch - mean_batch, axis=self.axis) + n * mean_batch
+                ) / self.n_samples
         return self
 
     def __call__(self) -> np.ndarray:
@@ -235,7 +237,7 @@ class BatchMean(BatchStat):
             return self.mean.copy()
 
     def __add__(self, other):
-        self.merge_test(other, field='mean')
+        self.merge_test(other, field="mean")
         if self.n_samples == 0:
             return other
         elif other.n_samples == 0:
@@ -243,7 +245,7 @@ class BatchMean(BatchStat):
         else:
             ret = BatchMean(axis=self.axis)
             ret.n_samples = self.n_samples + other.n_samples
-            ret.mean = self.n_samples*self.mean + other.n_samples*other.mean
+            ret.mean = self.n_samples * self.mean + other.n_samples * other.mean
             ret.mean /= ret.n_samples
             return ret
 
@@ -289,8 +291,8 @@ class BatchPeakToPeak(BatchStat):
         return self.batchmax() - self.batchmin()
 
     def __add__(self, other):
-        self.batchmax.merge_test(other.batchmax, field='max')
-        self.batchmin.merge_test(other.batchmin, field='min')
+        self.batchmax.merge_test(other.batchmax, field="max")
+        self.batchmin.merge_test(other.batchmin, field="min")
         if self.n_samples == 0:
             return other
         elif other.n_samples == 0:
@@ -354,12 +356,14 @@ class BatchVar(BatchMean):
         alphabet = string.ascii_lowercase
         ndim = v.ndim
         if not (p.ndim == u.ndim == ndim - 1):
-            raise ValueError(f"Expected 'p' and 'u' to be {ndim-1}D arrays, but got {p.ndim}D and {u.ndim}D arrays respectively.")
+            raise ValueError(
+                f"Expected 'p' and 'u' to be {ndim-1}D arrays, but got {p.ndim}D and {u.ndim}D arrays respectively."
+            )
         ij, j = alphabet[:ndim], alphabet[1:ndim]
 
-        ret = np.einsum(f'{ij},{ij}->{j}', v, v)
-        ret -= np.einsum(f'{j},{ij}->{j}', p + u, v)
-        ret += len(v)*p*u
+        ret = np.einsum(f"{ij},{ij}->{j}", v, v)
+        ret -= np.einsum(f"{j},{ij}->{j}", p + u, v)
+        ret += len(v) * p * u
         return ret
 
     def update_batch(self, batch, assume_valid=False):
@@ -404,7 +408,7 @@ class BatchVar(BatchMean):
         return (self.n_samples / (self.n_samples - self.ddof)) * self.var
 
     def __add__(self, other):
-        self.merge_test(other, field='var')
+        self.merge_test(other, field="var")
         if self.n_samples == 0:
             return other
         elif other.n_samples == 0:
@@ -413,10 +417,10 @@ class BatchVar(BatchMean):
             ret = BatchVar(axis=self.axis, ddof=self.ddof)
             ret.n_samples = self.n_samples + other.n_samples
             ret.mean = self.mean + other.mean
-            ret.var = self.n_samples*self.var + other.n_samples*other.var
+            ret.var = self.n_samples * self.var + other.n_samples * other.var
 
-            ret.var += self.n_samples*(self.mean()-ret.mean())**2
-            ret.var += other.n_samples*(other.mean()-ret.mean())**2
+            ret.var += self.n_samples * (self.mean() - ret.mean()) ** 2
+            ret.var += other.n_samples * (other.mean() - ret.mean()) ** 2
 
             ret.var /= ret.n_samples
             return ret
@@ -460,7 +464,7 @@ class BatchStd(BatchStat):
         return np.sqrt(self.var())
 
     def __add__(self, other):
-        self.var.merge_test(other.var, field='var')
+        self.var.merge_test(other.var, field="var")
         if self.n_samples == 0:
             return other
         elif other.n_samples == 0:
@@ -544,13 +548,13 @@ class BatchCov(BatchStat):
                 if n == 1:
                     self.cov = np.zeros((n1, n2))
                 else:
-                    self.cov = (batch1-self.mean1()).T@((batch2-self.mean2())/n)
+                    self.cov = (batch1 - self.mean1()).T @ ((batch2 - self.mean2()) / n)
             else:
                 m1 = self.mean1()
                 self.mean2.update_batch(batch2, assume_valid=True)
                 m2 = self.mean2()
-                self.cov += (batch1-m1).T@((batch2-m2)/self.mean1.n_samples)
-                self.cov *= (self.mean1.n_samples/self.mean2.n_samples)
+                self.cov += (batch1 - m1).T @ ((batch2 - m2) / self.mean1.n_samples)
+                self.cov *= self.mean1.n_samples / self.mean2.n_samples
                 self.mean1.update_batch(batch1, assume_valid=True)
         return self
 
@@ -567,10 +571,10 @@ class BatchCov(BatchStat):
         """
         if self.cov is None:
             raise NoValidSamplesError("No valid samples for calculating covariance.")
-        return self.n_samples/(self.n_samples - self.ddof)*self.cov
+        return self.n_samples / (self.n_samples - self.ddof) * self.cov
 
     def __add__(self, other):
-        self.merge_test(other, field='cov')
+        self.merge_test(other, field="cov")
         if self.n_samples == 0:
             return other
         elif other.n_samples == 0:
@@ -580,8 +584,8 @@ class BatchCov(BatchStat):
             ret.n_samples = self.n_samples + other.n_samples
             ret.mean1 = self.mean1 + other.mean1
             ret.mean2 = self.mean2 + other.mean2
-            ret.cov = self.n_samples*self.cov + other.n_samples*other.cov
-            ret.cov += self.n_samples*(self.mean1()-ret.mean1())[:, None]*(self.mean2()-ret.mean2())
-            ret.cov += other.n_samples*(other.mean1()-ret.mean1())[:, None]*(other.mean2()-ret.mean2())
+            ret.cov = self.n_samples * self.cov + other.n_samples * other.cov
+            ret.cov += self.n_samples * (self.mean1() - ret.mean1())[:, None] * (self.mean2() - ret.mean2())
+            ret.cov += other.n_samples * (other.mean1() - ret.mean1())[:, None] * (other.mean2() - ret.mean2())
             ret.cov /= ret.n_samples
             return ret

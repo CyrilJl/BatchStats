@@ -7,7 +7,7 @@ from batchstats import BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak,
 @pytest.fixture
 def data():
     m, n = 25_000, 50
-    return np.random.randn(m, n), np.random.randn(2*m, n)
+    return np.random.randn(m, n), np.random.randn(2 * m, n)
 
 
 def test_merge(data):
