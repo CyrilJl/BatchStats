@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "batchstats"
+version = "0.4.4"
+authors = [
+    { name = "Cyril Joly" }
+]
+description = "Efficient batch statistics computation library for Python."
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy",
+]
+
+[project.urls]
+Homepage = "https://github.com/CyrilJl/BatchStats"
+
+[tool.ruff]
+line-length = 120
+fix = true

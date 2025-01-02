@@ -7,7 +7,7 @@ build:
 python:
   install:
     - requirements: docs/environment.yml
-    - method: setuptools  # runs setup.py
+    - method: pip
       path: .
 
 conda:
