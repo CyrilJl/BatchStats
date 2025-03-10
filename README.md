@@ -60,7 +60,7 @@ for batch_index in np.array_split(np.arange(n_samples), n_batches):
     batchcov.update_batch(batch1=data1[batch_index], batch2=data2[batch_index])
 true_cov = (data1 - data1.mean(axis=0)).T@(data2 - data2.mean(axis=0))/n_samples
 np.allclose(true_cov, batchcov()), batchcov().shape
->>> (True, (100, 50))
+# (True, (100, 50))
 ```
 
 `batchstats` is also flexible in terms of input shapes. By default, statistics are applied along the first axis: the first dimension representing the samples and the remaining dimensions representing the features:
@@ -78,7 +78,7 @@ for batch_data in np.array_split(data, n_batches):
 
 true_sum = np.sum(data, axis=0)
 np.allclose(true_sum, batchsum()), batchsum().shape
->>> (True, (80, 90))
+# (True, (80, 90))
 ```
 
 However, similar to the associated functions in `numpy`, users can specify the reduction axis or axes:
@@ -93,13 +93,13 @@ batchmean = BatchMean(axis=(0, 2))
 for batch in data:
     batchmean.update_batch(batch)
 batchmean().shape
->>> (7,)
+# (7,)
 
 batchmean = BatchMean(axis=2)
 for batch in data:
     batchmean.update_batch(batch)
 batchmean().shape
->>> (24, 7)
+# (24, 7)
 ```
 
 ## Merging Two Objects
@@ -120,7 +120,7 @@ cov2 = BatchCov().update_batch(data2)
 
 cov_merged = cov1 + cov2
 np.allclose(cov(), cov_merged())
->>> True
+# True
 ```
 
 The `__add__` method has been specifically overloaded to facilitate the merging of statistical objects in `batchstats`, including `BatchCov`, `BatchMax`, `BatchMean`, `BatchMin`, `BatchPeakToPeak`, `BatchStd`, `BatchSum`, and `BatchVar`.
@@ -136,22 +136,22 @@ from batchstats import BatchVar
 
 data = np.random.randn(100_000, 1000)
 print(data.nbytes/2**20)
->>> 762.939453125
+# 762.939453125
 
 %memit a = np.var(data, axis=0)
->>> peak memory: 1604.63 MiB, increment: 763.35 MiB
+# peak memory: 1604.63 MiB, increment: 763.35 MiB
 
 %memit b = BatchVar().update_batch(data)()    
->>> peak memory: 842.62 MiB, increment: 0.91 MiB
+# peak memory: 842.62 MiB, increment: 0.91 MiB
 
 np.allclose(a, b)
->>> True
+# True
 
 %timeit a = np.var(data, axis=0)
->>> 510 ms ± 111 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+# 510 ms ± 111 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
 %timeit b = BatchVar().update_batch(data)()    
->>> 306 ms ± 5.09 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+# 306 ms ± 5.09 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 ```
 
 ## NaN handling possibility
@@ -175,7 +175,7 @@ batchsum = BatchNanSum()
 for batch_data in np.array_split(data, n_batches):
     batchsum.update_batch(batch=batch_data)
 np.allclose(np.nansum(data, axis=0), batchsum())
->>> True
+# True
 ```
 
 ## Available Classes/Stats
@@ -207,7 +207,7 @@ def test_mean(data, n_batches):
 data = np.random.randn(1_000_000, 50)
 n_batches = 31
 test_mean(data, n_batches)
->>> True
+# True
 ```
 
 ## Machine Learning Application
@@ -277,7 +277,7 @@ linear = LinearRegression().fit(X, y)
 
 # Check if the results match (coefficients and intercept)
 np.allclose(linear.coef_, model.coef_), np.allclose(linear.intercept_, model.intercept_)
->>> (True, True)
+# (True, True)
 ```
 
 ## Documentation
