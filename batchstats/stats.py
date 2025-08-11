@@ -319,8 +319,7 @@ class BatchVar(BatchMean):
         self.var = None
         self.ddof = check_params(param=ddof, types=int)
 
-    @classmethod
-    def init_var(cls, v, vm):
+    def init_var(self, v, vm):
         """
         Initialize variance.
 
@@ -332,12 +331,11 @@ class BatchVar(BatchMean):
             numpy.ndarray: Initialized variance.
 
         """
-        ret = cls.compute_incremental_variance(v, vm, vm)
+        ret = self.compute_incremental_variance(v, vm, vm)
         ret /= len(v)
         return ret
 
-    @staticmethod
-    def compute_incremental_variance(v, p, u):
+    def compute_incremental_variance(self, v, p, u):
         """
         Compute incremental variance.
         For v 2D and p/u 1D, equivalent to ``((v-p).T@(v-u)).sum(axis=0)`` or
