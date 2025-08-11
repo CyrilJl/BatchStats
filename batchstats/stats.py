@@ -353,17 +353,22 @@ class BatchVar(BatchMean):
             numpy.ndarray: Incremental variance.
 
         """
-        alphabet = string.ascii_lowercase
-        ndim = v.ndim
-        if not (p.ndim == u.ndim == ndim - 1):
-            raise ValueError(
-                f"Expected 'p' and 'u' to be {ndim-1}D arrays, but got {p.ndim}D and {u.ndim}D arrays respectively."
-            )
-        ij, j = alphabet[:ndim], alphabet[1:ndim]
+        axis = self.mean.axis
+        if isinstance(axis, int):
+            axis = (axis,)
 
-        ret = np.einsum(f"{ij},{ij}->{j}", v, v)
-        ret -= np.einsum(f"{j},{ij}->{j}", p + u, v)
-        ret += len(v) * p * u
+        alphabet = string.ascii_lowercase
+        v_indices = alphabet[: v.ndim]
+        p_indices = "".join([v_indices[i] for i in range(v.ndim) if i not in axis])
+
+        ret = np.einsum(f"{v_indices}->{p_indices}", v**2)
+        ret -= np.einsum(f"{v_indices},{p_indices}->{p_indices}", v, p + u)
+
+        size = 1
+        for ax in axis:
+            size *= v.shape[ax]
+        ret += size * p * u
+
         return ret
 
     def update_batch(self, batch, assume_valid=False):
