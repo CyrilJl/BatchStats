@@ -8,6 +8,33 @@ class BatchNanSum(BatchNanStat):
     """
     Class for calculating the sum of batches of data that can contain NaN values.
 
+    The algorithm is a simple cumulative sum, ignoring NaN values.
+
+    .. code:: python
+
+        import numpy as np
+        from batchstats import BatchNanSum
+
+        # create some data with NaNs
+        data1 = np.array([[1, 2], [3, np.nan]])
+        data2 = np.array([[5, 6], [np.nan, 8]])
+
+        # create a BatchNanSum object
+        bns = BatchNanSum()
+
+        # update with the first batch
+        bns.update_batch(data1)
+
+        # update with the second batch
+        bns.update_batch(data2)
+
+        # get the sum
+        total_sum = bns()
+
+        # verify the result
+        expected_sum = np.array([9., 16.])
+        np.testing.assert_allclose(total_sum, expected_sum)
+
     """
 
     def __init__(self, axis=0):
@@ -55,6 +82,34 @@ class BatchNanSum(BatchNanStat):
 class BatchNanMean(BatchNanStat):
     """
     Class for calculating the mean of batches of data that can contain NaN values.
+
+    The algorithm uses `BatchNanSum` to compute the sum and the number of valid samples,
+    then divides the sum by the number of samples to get the mean.
+
+    .. code:: python
+
+        import numpy as np
+        from batchstats import BatchNanMean
+
+        # create some data with NaNs
+        data1 = np.array([[1, 2], [3, np.nan]])
+        data2 = np.array([[5, 6], [np.nan, 8]])
+
+        # create a BatchNanMean object
+        bnm = BatchNanMean()
+
+        # update with the first batch
+        bnm.update_batch(data1)
+
+        # update with the second batch
+        bnm.update_batch(data2)
+
+        # get the mean
+        total_mean = bnm()
+
+        # verify the result
+        expected_mean = np.array([3., 5.33333333])
+        np.testing.assert_allclose(total_mean, expected_mean)
 
     """
 

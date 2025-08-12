@@ -10,6 +10,34 @@ class BatchSum(BatchStat):
     """
     Class for calculating the sum of batches of data.
 
+    The algorithm used is a simple cumulative sum. Each time a new batch is added,
+    the sum of the new batch is added to the existing sum.
+
+    .. code:: python
+
+        import numpy as np
+        from batchstats import BatchSum
+
+        # create some data
+        data1 = np.array([[1, 2], [3, 4]])
+        data2 = np.array([[5, 6], [7, 8]])
+
+        # create a BatchSum object
+        bs = BatchSum()
+
+        # update with the first batch
+        bs.update_batch(data1)
+
+        # update with the second batch
+        bs.update_batch(data2)
+
+        # get the sum
+        total_sum = bs()
+
+        # verify the result
+        expected_sum = np.array([16, 20])
+        np.testing.assert_allclose(total_sum, expected_sum)
+
     """
 
     def __init__(self, axis=0):
@@ -73,6 +101,34 @@ class BatchSum(BatchStat):
 class BatchMax(BatchStat):
     """
     Class for calculating the maximum of batches of data.
+
+    The algorithm keeps track of the element-wise maximum. When a new batch is added,
+    the element-wise maximum between the current maximum and the new batch's maximum is computed.
+
+    .. code:: python
+
+        import numpy as np
+        from batchstats import BatchMax
+
+        # create some data
+        data1 = np.array([[1, 8], [3, 4]])
+        data2 = np.array([[5, 6], [7, 2]])
+
+        # create a BatchMax object
+        bm = BatchMax()
+
+        # update with the first batch
+        bm.update_batch(data1)
+
+        # update with the second batch
+        bm.update_batch(data2)
+
+        # get the maximum
+        total_max = bm()
+
+        # verify the result
+        expected_max = np.array([7, 8])
+        np.testing.assert_allclose(total_max, expected_max)
 
     """
 
@@ -138,6 +194,34 @@ class BatchMin(BatchStat):
     """
     Class for calculating the minimum of batches of data.
 
+    The algorithm keeps track of the element-wise minimum. When a new batch is added,
+    the element-wise minimum between the current minimum and the new batch's minimum is computed.
+
+    .. code:: python
+
+        import numpy as np
+        from batchstats import BatchMin
+
+        # create some data
+        data1 = np.array([[1, 8], [3, 4]])
+        data2 = np.array([[5, 6], [7, 2]])
+
+        # create a BatchMin object
+        bm = BatchMin()
+
+        # update with the first batch
+        bm.update_batch(data1)
+
+        # update with the second batch
+        bm.update_batch(data2)
+
+        # get the minimum
+        total_min = bm()
+
+        # verify the result
+        expected_min = np.array([1, 2])
+        np.testing.assert_allclose(total_min, expected_min)
+
     """
 
     def __init__(self, axis=0):
@@ -201,6 +285,34 @@ class BatchMin(BatchStat):
 class BatchMean(BatchStat):
     """
     Class for calculating the mean of batches of data.
+
+    The algorithm uses an incremental mean calculation. The new mean is computed from
+    the previous mean, the new data, and the number of samples.
+
+    .. code:: python
+
+        import numpy as np
+        from batchstats import BatchMean
+
+        # create some data
+        data1 = np.array([[1, 2], [3, 4]])
+        data2 = np.array([[5, 6], [7, 8]])
+
+        # create a BatchMean object
+        bm = BatchMean()
+
+        # update with the first batch
+        bm.update_batch(data1)
+
+        # update with the second batch
+        bm.update_batch(data2)
+
+        # get the mean
+        total_mean = bm()
+
+        # verify the result
+        expected_mean = np.array([4., 5.])
+        np.testing.assert_allclose(total_mean, expected_mean)
 
     """
 
@@ -267,6 +379,36 @@ class BatchMean(BatchStat):
 class BatchPeakToPeak(BatchStat):
     """
     Class for calculating the peak-to-peak (max - min) of batches of data.
+
+    This class uses `BatchMax` and `BatchMin` internally to keep track of the
+    element-wise maximum and minimum values. The peak-to-peak value is the
+    difference between the maximum and minimum.
+
+    .. code:: python
+
+        import numpy as np
+        from batchstats import BatchPeakToPeak
+
+        # create some data
+        data1 = np.array([[1, 8], [3, 4]])
+        data2 = np.array([[5, 6], [7, 2]])
+
+        # create a BatchPeakToPeak object
+        bpp = BatchPeakToPeak()
+
+        # update with the first batch
+        bpp.update_batch(data1)
+
+        # update with the second batch
+        bpp.update_batch(data2)
+
+        # get the peak-to-peak
+        total_ptp = bpp()
+
+        # verify the result
+        expected_ptp = np.array([6, 6])
+        np.testing.assert_allclose(total_ptp, expected_ptp)
+
     """
 
     def __init__(self, axis=0):
@@ -323,8 +465,37 @@ class BatchVar(BatchStat):
     """
     Class for calculating the variance of batches of data.
 
+    The algorithm is an implementation of Welford's online algorithm for computing variance.
+    It is numerically stable and avoids a two-pass approach.
+
     Args:
         ddof (int, optional): Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
+
+    .. code:: python
+
+        import numpy as np
+        from batchstats import BatchVar
+
+        # create some data
+        data1 = np.array([[1, 2], [3, 4]])
+        data2 = np.array([[5, 6], [7, 8]])
+
+        # create a BatchVar object
+        bv = BatchVar()
+
+        # update with the first batch
+        bv.update_batch(data1)
+
+        # update with the second batch
+        bv.update_batch(data2)
+
+        # get the variance
+        total_var = bv()
+
+        # verify the result
+        expected_var = np.array([5., 5.])
+        np.testing.assert_allclose(total_var, expected_var)
+
     """
 
     def __init__(self, axis=0, ddof=0):
@@ -413,10 +584,39 @@ class BatchVar(BatchStat):
 
 
 class BatchStd(BatchStat):
-    """Class for calculating the standard deviation of batches of data.
+    """
+    Class for calculating the standard deviation of batches of data.
+
+    This class uses `BatchVar` internally and takes the square root of the result.
 
     Args:
         ddof (int, optional): Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
+
+    .. code:: python
+
+        import numpy as np
+        from batchstats import BatchStd
+
+        # create some data
+        data1 = np.array([[1, 2], [3, 4]])
+        data2 = np.array([[5, 6], [7, 8]])
+
+        # create a BatchStd object
+        bs = BatchStd()
+
+        # update with the first batch
+        bs.update_batch(data1)
+
+        # update with the second batch
+        bs.update_batch(data2)
+
+        # get the standard deviation
+        total_std = bs()
+
+        # verify the result
+        expected_std = np.array([2.23606798, 2.23606798])
+        np.testing.assert_allclose(total_std, expected_std)
+
     """
 
     def __init__(self, axis=0, ddof=0):
@@ -466,8 +666,37 @@ class BatchCov(BatchStat):
     """
     Class for calculating the covariance of batches of data.
 
+    The algorithm is an implementation of an online covariance calculation.
+    It is numerically stable and avoids a two-pass approach.
+
     Args:
         ddof (int, optional): Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
+
+    .. code:: python
+
+        import numpy as np
+        from batchstats import BatchCov
+
+        # create some data
+        data1 = np.array([[1, 2], [3, 4]])
+        data2 = np.array([[5, 6], [7, 8]])
+
+        # create a BatchCov object
+        bc = BatchCov()
+
+        # update with the first batch
+        bc.update_batch(data1)
+
+        # update with the second batch
+        bc.update_batch(data2)
+
+        # get the covariance
+        total_cov = bc()
+
+        # verify the result
+        expected_cov = np.array([[5., 5.], [5., 5.]])
+        np.testing.assert_allclose(total_cov, expected_cov)
+
     """
 
     def __init__(self, ddof=0):
