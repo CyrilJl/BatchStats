@@ -5,13 +5,13 @@
 [![Documentation Status](https://img.shields.io/readthedocs/batchstats?logo=read-the-docs)](https://batchstats.readthedocs.io/en/latest/?badge=latest)
 [![Unit tests](https://github.com/CyrilJl/BatchStats/actions/workflows/pytest.yml/badge.svg)](https://github.com/CyrilJl/BatchStats/actions/workflows/pytest.yml)
 
-`batchstats` is a Python package for computing statistics on data that arrives in batches. It's perfect for streaming data or datasets too large to fit into memory.
+``batchstats`` is a Python package for computing statistics on data that arrives in batches. It's perfect for streaming data or datasets too large to fit into memory.
 
 For detailed information, please check out the [full documentation](https://batchstats.readthedocs.io).
 
 ## Installation
 
-Install `batchstats` using `pip`:
+Install ``batchstats`` using ``pip``:
 
 ```console
 pip install batchstats
@@ -53,7 +53,7 @@ print(f"Variance shape: {variance.shape}")
 
 ## Handling NaN Values
 
-`batchstats` provides `BatchNan*` classes to handle `NaN` values, similar to `numpy`'s `nan*` functions.
+``batchstats`` provides `BatchNan*` classes to handle `NaN` values, similar to `numpy`'s `nan*` functions.
 
 ```python
 import numpy as np
@@ -71,15 +71,15 @@ print(f"NaN-aware mean shape: {nan_mean.shape}")
 
 ## Available Statistics
 
-`batchstats` supports a variety of common statistics:
+``batchstats`` supports a variety of common statistics:
 
-*   `BatchSum` / `BatchNanSum`
-*   `BatchMean` / `BatchNanMean`
-*   `BatchVar`
-*   `BatchStd`
-*   `BatchMin`
-*   `BatchMax`
-*   `BatchPeakToPeak`
-*   `BatchCov`
+* `BatchSum` / `BatchNanSum`
+* `BatchMean` / `BatchNanMean`
+* `BatchVar`
+* `BatchStd`
+* `BatchMin`
+* `BatchMax`
+* `BatchPeakToPeak`
+* `BatchCov`
 
 For more details on each class, see the [API Reference](https://batchstats.readthedocs.io/en/latest/api.html).
