@@ -657,21 +657,35 @@ class BatchVar(BatchStat):
         self.var = None
         self.ddof = check_params(param=ddof, types=int)
 
-    def compute_incremental_variance(self, v, p, u):
-        """
-        Compute incremental variance.
-        For v 2D and p/u 1D, equivalent to ``((v-p).T@(v-u)).sum(axis=0)``
+    @staticmethod
+    def _get_axis_size(arr, axis):
+        """Computes the product of dimensions for a given axis tuple."""
+        axis_ = np.atleast_1d(axis)
+        size = 1
+        for ax in axis_:
+            size *= arr.shape[ax]
+        return size
 
-        Args:
-            v (numpy.ndarray): Input data.
-            p (numpy.ndarray): Previous mean.
-            u (numpy.ndarray): Updated mean.
+    @classmethod
+    def init_var(cls, v, vm, axis):
+        ret = cls.compute_incremental_variance(v, vm, vm, axis=axis)
+        size = cls._get_axis_size(v, axis)
+        ret /= size
+        return ret
 
-        Returns:
-            numpy.ndarray: Incremental variance.
-
-        """
-        return np.sum((v - p) * (v - u), axis=self.axis, keepdims=True)
+    @classmethod
+    def compute_incremental_variance(cls, v, p, u, axis):
+        axis_ = tuple(np.atleast_1d(axis))
+        v_ndim = v.ndim
+        v_indices = string.ascii_lowercase[:v_ndim]
+        pu_indices = "".join([v_indices[k] for k in range(v_ndim) if k not in axis_])
+        ret = np.einsum(f"{v_indices},{v_indices}->{pu_indices}", v, v)
+        ret -= np.einsum(f"{pu_indices},{v_indices}->{pu_indices}", p + u, v)
+        size = cls._get_axis_size(v, axis)
+        ret += size * p * u
+        if ret.ndim < v_ndim:
+            ret = np.expand_dims(ret, axis=tuple(axis_))
+        return ret
 
     def update_batch(self, batch, assume_valid=False):
         """
@@ -690,12 +704,17 @@ class BatchVar(BatchStat):
         if n > 0:
             if self.var is None:
                 self.mean.update_batch(valid_batch, assume_valid=True)
-                self.var = np.var(valid_batch, axis=self.axis, keepdims=True)
+                self.var = self.init_var(v=valid_batch, vm=self.mean(), axis=self.axis)
             else:
-                previous_mean = self.mean.mean
+                previous_mean = self.mean()
                 self.mean.update_batch(valid_batch, assume_valid=True)
-                updated_mean = self.mean.mean
-                incremental_variance = self.compute_incremental_variance(valid_batch, previous_mean, updated_mean)
+                updated_mean = self.mean()
+                incremental_variance = self.compute_incremental_variance(
+                    valid_batch,
+                    previous_mean,
+                    updated_mean,
+                    axis=self.axis,
+                )
                 self.var = ((self.n_samples - n) * self.var + incremental_variance) / self.n_samples
         return self
 
