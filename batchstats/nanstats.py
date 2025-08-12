@@ -35,6 +35,35 @@ class BatchNanSum(BatchNanStat):
         expected_sum = np.array([9., 16.])
         np.testing.assert_allclose(total_sum, expected_sum)
 
+
+    .. admonition:: Example with multiple axes and data > 2 dimensions
+
+        .. code:: python
+
+            # create some 3d data with NaNs
+            data1 = np.arange(24).reshape(2, 3, 4).astype(float)
+            data1[0, 1, 1] = np.nan
+            data2 = np.arange(24, 48).reshape(2, 3, 4).astype(float)
+            data2[1, 2, 0] = np.nan
+
+
+            # create a BatchNanSum object to sum over the last two axes
+            bns = BatchNanSum(axis=(1, 2))
+
+            # update with the first batch
+            bns.update_batch(data1)
+
+            # update with the second batch
+            bns.update_batch(data2)
+
+            # get the sum
+            total_sum = bns()
+
+            # verify the result
+            d = np.concatenate((data1, data2))
+            expected_sum = np.nansum(d, axis=(1,2))
+            np.testing.assert_allclose(total_sum, expected_sum)
+
     """
 
     def __init__(self, axis=0):
@@ -110,6 +139,34 @@ class BatchNanMean(BatchNanStat):
         # verify the result
         expected_mean = np.array([3., 5.33333333])
         np.testing.assert_allclose(total_mean, expected_mean)
+
+
+    .. admonition:: Example with multiple axes and data > 2 dimensions
+
+        .. code:: python
+
+            # create some 3d data with NaNs
+            data1 = np.arange(24).reshape(2, 3, 4).astype(float)
+            data1[0, 1, 1] = np.nan
+            data2 = np.arange(24, 48).reshape(2, 3, 4).astype(float)
+            data2[1, 2, 0] = np.nan
+
+            # create a BatchNanMean object to get the mean over the last two axes
+            bnm = BatchNanMean(axis=(1, 2))
+
+            # update with the first batch
+            bnm.update_batch(data1)
+
+            # update with the second batch
+            bnm.update_batch(data2)
+
+            # get the mean
+            total_mean = bnm()
+
+            # verify the result
+            d = np.concatenate((data1, data2))
+            expected_mean = np.nanmean(d, axis=(1,2))
+            np.testing.assert_allclose(total_mean, expected_mean)
 
     """
 
