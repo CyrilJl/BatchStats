@@ -341,32 +341,33 @@ class BatchVar(BatchMean):
         For v 2D and p/u 1D, equivalent to ``((v-p).T@(v-u)).sum(axis=0)`` or
         ``np.einsum('ji,ji->i', v - p, v - u)``. Faster and less memory consumer because
         no intermediate 2D array are created.
-
+    
         Args:
             v (numpy.ndarray): Input data.
             p (numpy.ndarray): Previous mean.
             u (numpy.ndarray): Updated mean.
-
+    
         Returns:
             numpy.ndarray: Incremental variance.
-
+    
         """
         axis = self.mean.axis
         if isinstance(axis, int):
             axis = (axis,)
-
+    
         alphabet = string.ascii_lowercase
         v_indices = alphabet[: v.ndim]
         p_indices = "".join([v_indices[i] for i in range(v.ndim) if i not in axis])
-
-        ret = np.einsum(f"{v_indices}->{p_indices}", v**2)
+    
+        # Compute v² directly in einsum
+        ret = np.einsum(f"{v_indices},{v_indices}->{p_indices}", v, v)
         ret -= np.einsum(f"{v_indices},{p_indices}->{p_indices}", v, p + u)
-
+    
         size = 1
         for ax in axis:
             size *= v.shape[ax]
         ret += size * p * u
-
+    
         return ret
 
     def update_batch(self, batch, assume_valid=False):
