@@ -1,6 +1,5 @@
 import numpy as np
 
-from .._misc import NoValidSamplesError
 from ..base import BatchStat
 from .max import BatchMax
 from .min import BatchMin
