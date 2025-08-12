@@ -1,3 +1,5 @@
+from importlib.metadata import version
+
 from .nanstats import BatchNanMean, BatchNanStat, BatchNanSum
 from .stats import BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak, BatchStat, BatchStd, BatchSum, BatchVar
 
@@ -16,4 +18,4 @@ __all__ = [
     "BatchNanSum",
 ]
 
-__version__ = "0.4.3"
+__version__ = version("batchstats")

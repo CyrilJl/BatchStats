@@ -38,6 +38,31 @@ class BatchSum(BatchStat):
         expected_sum = np.array([16, 20])
         np.testing.assert_allclose(total_sum, expected_sum)
 
+
+    .. admonition:: Example with multiple axes and data > 2 dimensions
+
+        .. code:: python
+
+            # create some 3d data
+            data1 = np.arange(24).reshape(2, 3, 4)
+            data2 = np.arange(24, 48).reshape(2, 3, 4)
+
+            # create a BatchSum object to sum over the last two axes
+            bs = BatchSum(axis=(1, 2))
+
+            # update with the first batch
+            bs.update_batch(data1)
+
+            # update with the second batch
+            bs.update_batch(data2)
+
+            # get the sum
+            total_sum = bs()
+
+            # verify the result
+            expected_sum = data1.sum(axis=(1,2)) + data2.sum(axis=(1,2))
+            np.testing.assert_allclose(total_sum, expected_sum)
+
     """
 
     def __init__(self, axis=0):
@@ -129,6 +154,31 @@ class BatchMax(BatchStat):
         # verify the result
         expected_max = np.array([7, 8])
         np.testing.assert_allclose(total_max, expected_max)
+
+
+    .. admonition:: Example with multiple axes and data > 2 dimensions
+
+        .. code:: python
+
+            # create some 3d data
+            data1 = np.arange(24).reshape(2, 3, 4)
+            data2 = np.arange(24, 48).reshape(2, 3, 4)
+
+            # create a BatchMax object to get the max over the last two axes
+            bm = BatchMax(axis=(1, 2))
+
+            # update with the first batch
+            bm.update_batch(data1)
+
+            # update with the second batch
+            bm.update_batch(data2)
+
+            # get the max
+            total_max = bm()
+
+            # verify the result
+            expected_max = np.maximum(data1.max(axis=(1,2)), data2.max(axis=(1,2)))
+            np.testing.assert_allclose(total_max, expected_max)
 
     """
 
@@ -222,6 +272,31 @@ class BatchMin(BatchStat):
         expected_min = np.array([1, 2])
         np.testing.assert_allclose(total_min, expected_min)
 
+
+    .. admonition:: Example with multiple axes and data > 2 dimensions
+
+        .. code:: python
+
+            # create some 3d data
+            data1 = np.arange(24).reshape(2, 3, 4)
+            data2 = np.arange(24, 48).reshape(2, 3, 4)
+
+            # create a BatchMin object to get the min over the last two axes
+            bm = BatchMin(axis=(1, 2))
+
+            # update with the first batch
+            bm.update_batch(data1)
+
+            # update with the second batch
+            bm.update_batch(data2)
+
+            # get the min
+            total_min = bm()
+
+            # verify the result
+            expected_min = np.minimum(data1.min(axis=(1,2)), data2.min(axis=(1,2)))
+            np.testing.assert_allclose(total_min, expected_min)
+
     """
 
     def __init__(self, axis=0):
@@ -313,6 +388,32 @@ class BatchMean(BatchStat):
         # verify the result
         expected_mean = np.array([4., 5.])
         np.testing.assert_allclose(total_mean, expected_mean)
+
+
+    .. admonition:: Example with multiple axes and data > 2 dimensions
+
+        .. code:: python
+
+            # create some 3d data
+            data1 = np.arange(24).reshape(2, 3, 4)
+            data2 = np.arange(24, 48).reshape(2, 3, 4)
+
+            # create a BatchMean object to get the mean over the last two axes
+            bm = BatchMean(axis=(1, 2))
+
+            # update with the first batch
+            bm.update_batch(data1)
+
+            # update with the second batch
+            bm.update_batch(data2)
+
+            # get the mean
+            total_mean = bm()
+
+            # verify the result
+            d = np.concatenate((data1, data2))
+            expected_mean = d.mean(axis=(1,2))
+            np.testing.assert_allclose(total_mean, expected_mean)
 
     """
 
@@ -409,6 +510,32 @@ class BatchPeakToPeak(BatchStat):
         expected_ptp = np.array([6, 6])
         np.testing.assert_allclose(total_ptp, expected_ptp)
 
+
+    .. admonition:: Example with multiple axes and data > 2 dimensions
+
+        .. code:: python
+
+            # create some 3d data
+            data1 = np.arange(24).reshape(2, 3, 4)
+            data2 = np.arange(24, 48).reshape(2, 3, 4)
+
+            # create a BatchPeakToPeak object to get the ptp over the last two axes
+            bpp = BatchPeakToPeak(axis=(1, 2))
+
+            # update with the first batch
+            bpp.update_batch(data1)
+
+            # update with the second batch
+            bpp.update_batch(data2)
+
+            # get the ptp
+            total_ptp = bpp()
+
+            # verify the result
+            d = np.concatenate((data1, data2))
+            expected_ptp = d.max(axis=(1,2)) - d.min(axis=(1,2))
+            np.testing.assert_allclose(total_ptp, expected_ptp)
+
     """
 
     def __init__(self, axis=0):
@@ -495,6 +622,32 @@ class BatchVar(BatchStat):
         # verify the result
         expected_var = np.array([5., 5.])
         np.testing.assert_allclose(total_var, expected_var)
+
+
+    .. admonition:: Example with multiple axes and data > 2 dimensions
+
+        .. code:: python
+
+            # create some 3d data
+            data1 = np.arange(24).reshape(2, 3, 4)
+            data2 = np.arange(24, 48).reshape(2, 3, 4)
+
+            # create a BatchVar object to get the var over the last two axes
+            bv = BatchVar(axis=(1, 2))
+
+            # update with the first batch
+            bv.update_batch(data1)
+
+            # update with the second batch
+            bv.update_batch(data2)
+
+            # get the var
+            total_var = bv()
+
+            # verify the result
+            d = np.concatenate((data1, data2))
+            expected_var = d.var(axis=(1,2))
+            np.testing.assert_allclose(total_var, expected_var)
 
     """
 
@@ -616,6 +769,32 @@ class BatchStd(BatchStat):
         # verify the result
         expected_std = np.array([2.23606798, 2.23606798])
         np.testing.assert_allclose(total_std, expected_std)
+
+
+    .. admonition:: Example with multiple axes and data > 2 dimensions
+
+        .. code:: python
+
+            # create some 3d data
+            data1 = np.arange(24).reshape(2, 3, 4)
+            data2 = np.arange(24, 48).reshape(2, 3, 4)
+
+            # create a BatchStd object to get the std over the last two axes
+            bs = BatchStd(axis=(1, 2))
+
+            # update with the first batch
+            bs.update_batch(data1)
+
+            # update with the second batch
+            bs.update_batch(data2)
+
+            # get the std
+            total_std = bs()
+
+            # verify the result
+            d = np.concatenate((data1, data2))
+            expected_std = d.std(axis=(1,2))
+            np.testing.assert_allclose(total_std, expected_std)
 
     """
 
