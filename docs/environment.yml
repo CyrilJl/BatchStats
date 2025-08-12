@@ -9,4 +9,4 @@ dependencies:
   - sphinx-favicon
   - pandoc
   - numpy
-  - sphinxawesome_theme
+  - sphinxawesome-theme
