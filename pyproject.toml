@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "batchstats"
-version = "0.4.5"
+version = "0.5"
 authors = [
     { name = "Cyril Joly" }
 ]
