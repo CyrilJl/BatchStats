@@ -11,14 +11,8 @@ Welcome to batchstats's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   :hidden:
 
    installation
    incremental_computing
    api
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
