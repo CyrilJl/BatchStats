@@ -15,67 +15,21 @@ def n_batches():
     return 13
 
 
-def test_var_axis_tuple(data_3d, n_batches):
-    axis = (0, 1)
-    true_stat = np.var(data_3d, axis=axis)
+@pytest.mark.parametrize("stat_class, ref_func, axis", [
+    (BatchVar, np.var, (0, 1)),        
+    (BatchVar, np.var, (0, 1, 2)),     
+    (BatchStd, np.std, (0, 1)),         
+    (BatchVar, np.var, (1, 0)),         
+    (BatchVar, np.var, (0, 2)),         
+    (BatchStd, np.std, (0, 1, 2)),      
+])
+def test_batch_stats(data_3d, n_batches, stat_class, ref_func, axis):
+    """Test batch statistics calculation for various operations and axes."""
+    true_stat = ref_func(data_3d, axis=axis)
 
-    batchvar = BatchVar(axis=axis)
+    batch_stat_processor = stat_class(axis=axis)
     for batch_data in np.array_split(data_3d, n_batches):
-        batchvar.update_batch(batch=batch_data)
-    batch_stat = batchvar()
-    assert np.allclose(true_stat, batch_stat)
-
-
-def test_var_axis_all(data_3d, n_batches):
-    axis = (0, 1, 2)
-    true_stat = np.var(data_3d, axis=axis)
-
-    batchvar = BatchVar(axis=axis)
-    for batch_data in np.array_split(data_3d, n_batches):
-        batchvar.update_batch(batch=batch_data)
-    batch_stat = batchvar()
-    assert np.allclose(true_stat, batch_stat)
-
-
-def test_std_axis_tuple(data_3d, n_batches):
-    axis = (0, 1)
-    true_stat = np.std(data_3d, axis=axis)
-
-    batchstd = BatchStd(axis=axis)
-    for batch_data in np.array_split(data_3d, n_batches):
-        batchstd.update_batch(batch=batch_data)
-    batch_stat = batchstd()
-    assert np.allclose(true_stat, batch_stat)
-
-
-def test_var_axis_tuple_unordered(data_3d, n_batches):
-    axis = (1, 0)
-    true_stat = np.var(data_3d, axis=axis)
-
-    batchvar = BatchVar(axis=axis)
-    for batch_data in np.array_split(data_3d, n_batches):
-        batchvar.update_batch(batch=batch_data)
-    batch_stat = batchvar()
-    assert np.allclose(true_stat, batch_stat)
-
-
-def test_var_axis_tuple_mixed(data_3d, n_batches):
-    axis = (0, 2)
-    true_stat = np.var(data_3d, axis=axis)
-
-    batchvar = BatchVar(axis=axis)
-    for batch_data in np.array_split(data_3d, n_batches):
-        batchvar.update_batch(batch=batch_data)
-    batch_stat = batchvar()
-    assert np.allclose(true_stat, batch_stat)
-
-
-def test_std_axis_all(data_3d, n_batches):
-    axis = (0, 1, 2)
-    true_stat = np.std(data_3d, axis=axis)
-
-    batchstd = BatchStd(axis=axis)
-    for batch_data in np.array_split(data_3d, n_batches):
-        batchstd.update_batch(batch=batch_data)
-    batch_stat = batchstd()
+        batch_stat_processor.update_batch(batch=batch_data)
+    batch_stat = batch_stat_processor()
+    
     assert np.allclose(true_stat, batch_stat)
