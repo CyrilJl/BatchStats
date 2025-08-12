@@ -68,3 +68,4 @@ html_theme_options = {
     },
 }
 html_logo = "_static/logo_batchstats.svg"
+pygments_style = "igor"
