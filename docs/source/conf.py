@@ -33,6 +33,7 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
+html_title = project
 html_theme = "sphinxawesome_theme"
 html_static_path = ["_static"]
 html_theme_options = {
@@ -68,4 +69,5 @@ html_theme_options = {
     },
 }
 html_logo = "_static/logo_batchstats.svg"
+html_favicon = "_static/logo_batchstats.svg"
 pygments_style = "igor"
