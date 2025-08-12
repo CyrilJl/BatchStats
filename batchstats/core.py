@@ -22,6 +22,23 @@ class BatchStat:
         else:
             return tuple(set(range(ndim)) - set(self.axis))
 
+    def _get_n_samples_in_batch(self, batch):
+        if self.axis is None:
+            return batch.size
+
+        axis = self.axis
+        if isinstance(axis, int):
+            axis = (axis,)
+
+        shape = batch.shape
+        n = 1
+        for ax in axis:
+            try:
+                n *= shape[ax]
+            except IndexError:
+                pass
+        return n
+
     def _process_batch(self, batch, assume_valid=False):
         """
         Process the input batch, handling NaN values if necessary.
@@ -36,7 +53,7 @@ class BatchStat:
         """
         batch = np.atleast_2d(np.asarray(batch))
         if assume_valid:
-            self.n_samples += len(batch)
+            self.n_samples += self._get_n_samples_in_batch(batch)
             return batch
         else:
             axis = self._complementary_axis(ndim=batch.ndim)
@@ -45,7 +62,7 @@ class BatchStat:
                 valid_batch = batch[~nan_mask]
             else:
                 valid_batch = batch
-            self.n_samples += len(valid_batch)
+            self.n_samples += self._get_n_samples_in_batch(valid_batch)
             return valid_batch
 
     def __repr__(self):

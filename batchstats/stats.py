@@ -31,10 +31,11 @@ class BatchSum(BatchStat):
         valid_batch = self._process_batch(batch=batch, assume_valid=assume_valid)
         n = len(valid_batch)
         if n > 0:
+            batch_sum = np.sum(a=valid_batch, axis=self.axis, keepdims=True)
             if self.sum is None:
-                self.sum = np.sum(a=valid_batch, axis=self.axis)
+                self.sum = batch_sum
             else:
-                self.sum += np.sum(a=valid_batch, axis=self.axis)
+                self.sum += batch_sum
         return self
 
     def __call__(self) -> np.ndarray:
@@ -51,7 +52,10 @@ class BatchSum(BatchStat):
         if self.sum is None:
             raise NoValidSamplesError("No valid samples for calculating sum.")
         else:
-            return self.sum.copy()
+            sum_ = self.sum.copy()
+            if self.axis is not None:
+                return sum_.squeeze(axis=self.axis)
+            return sum_
 
     def __add__(self, other):
         self.merge_test(other, field="sum")
@@ -91,10 +95,11 @@ class BatchMax(BatchStat):
         valid_batch = self._process_batch(batch=batch, assume_valid=assume_valid)
         n = len(valid_batch)
         if n > 0:
+            batch_max = np.max(valid_batch, axis=self.axis, keepdims=True)
             if self.max is None:
-                self.max = np.max(valid_batch, axis=self.axis)
+                self.max = batch_max
             else:
-                np.maximum(self.max, np.max(valid_batch, axis=self.axis), out=self.max)
+                self.max = np.maximum(self.max, batch_max)
         return self
 
     def __call__(self) -> np.ndarray:
@@ -111,7 +116,10 @@ class BatchMax(BatchStat):
         if self.max is None:
             raise NoValidSamplesError("No valid samples for calculating max.")
         else:
-            return self.max.copy()
+            max_ = self.max.copy()
+            if self.axis is not None:
+                return max_.squeeze(axis=self.axis)
+            return max_
 
     def __add__(self, other):
         self.merge_test(other, field="max")
@@ -151,10 +159,11 @@ class BatchMin(BatchStat):
         valid_batch = self._process_batch(batch=batch, assume_valid=assume_valid)
         n = len(valid_batch)
         if n > 0:
+            batch_min = np.min(valid_batch, axis=self.axis, keepdims=True)
             if self.min is None:
-                self.min = np.min(valid_batch, axis=self.axis)
+                self.min = batch_min
             else:
-                np.minimum(self.min, np.min(valid_batch, axis=self.axis), out=self.min)
+                self.min = np.minimum(self.min, batch_min)
         return self
 
     def __call__(self) -> np.ndarray:
@@ -171,7 +180,10 @@ class BatchMin(BatchStat):
         if self.min is None:
             raise NoValidSamplesError("No valid samples for calculating min.")
         else:
-            return self.min.copy()
+            min_ = self.min.copy()
+            if self.axis is not None:
+                return min_.squeeze(axis=self.axis)
+            return min_
 
     def __add__(self, other):
         self.merge_test(other, field="min")
@@ -209,14 +221,13 @@ class BatchMean(BatchStat):
 
         """
         valid_batch = self._process_batch(batch=batch, assume_valid=assume_valid)
-        n = len(valid_batch)
+        n = self._get_n_samples_in_batch(valid_batch)
         if n > 0:
             if self.mean is None:
-                self.mean = np.mean(valid_batch, axis=self.axis)
+                self.mean = np.mean(valid_batch, axis=self.axis, keepdims=True)
             else:
-                mean_batch = np.mean(valid_batch, axis=self.axis)
                 self.mean = (
-                    (self.n_samples - n) * self.mean + np.sum(valid_batch - mean_batch, axis=self.axis) + n * mean_batch
+                    (self.n_samples - n) * self.mean + np.sum(valid_batch, axis=self.axis, keepdims=True)
                 ) / self.n_samples
         return self
 
@@ -234,7 +245,10 @@ class BatchMean(BatchStat):
         if self.mean is None:
             raise NoValidSamplesError("No valid samples for calculating mean.")
         else:
-            return self.mean.copy()
+            mean_ = self.mean.copy()
+            if self.axis is not None:
+                return mean_.squeeze(axis=self.axis)
+            return mean_
 
     def __add__(self, other):
         self.merge_test(other, field="mean")
@@ -305,7 +319,7 @@ class BatchPeakToPeak(BatchStat):
             return ret
 
 
-class BatchVar(BatchMean):
+class BatchVar(BatchStat):
     """
     Class for calculating the variance of batches of data.
 
@@ -319,56 +333,21 @@ class BatchVar(BatchMean):
         self.var = None
         self.ddof = check_params(param=ddof, types=int)
 
-    def init_var(self, v, vm):
-        """
-        Initialize variance.
-
-        Args:
-            v (numpy.ndarray): Input data.
-            vm (numpy.ndarray): Mean of the input data.
-
-        Returns:
-            numpy.ndarray: Initialized variance.
-
-        """
-        ret = self.compute_incremental_variance(v, vm, vm)
-        ret /= len(v)
-        return ret
-
     def compute_incremental_variance(self, v, p, u):
         """
         Compute incremental variance.
-        For v 2D and p/u 1D, equivalent to ``((v-p).T@(v-u)).sum(axis=0)`` or
-        ``np.einsum('ji,ji->i', v - p, v - u)``. Faster and less memory consumer because
-        no intermediate 2D array are created.
-    
+        For v 2D and p/u 1D, equivalent to ``((v-p).T@(v-u)).sum(axis=0)``
+
         Args:
             v (numpy.ndarray): Input data.
             p (numpy.ndarray): Previous mean.
             u (numpy.ndarray): Updated mean.
-    
+
         Returns:
             numpy.ndarray: Incremental variance.
-    
+
         """
-        axis = self.mean.axis
-        if isinstance(axis, int):
-            axis = (axis,)
-    
-        alphabet = string.ascii_lowercase
-        v_indices = alphabet[: v.ndim]
-        p_indices = "".join([v_indices[i] for i in range(v.ndim) if i not in axis])
-    
-        # Compute v² directly in einsum
-        ret = np.einsum(f"{v_indices},{v_indices}->{p_indices}", v, v)
-        ret -= np.einsum(f"{v_indices},{p_indices}->{p_indices}", v, p + u)
-    
-        size = 1
-        for ax in axis:
-            size *= v.shape[ax]
-        ret += size * p * u
-    
-        return ret
+        return np.sum((v - p) * (v - u), axis=self.axis, keepdims=True)
 
     def update_batch(self, batch, assume_valid=False):
         """
@@ -383,15 +362,15 @@ class BatchVar(BatchMean):
 
         """
         valid_batch = self._process_batch(batch, assume_valid=assume_valid)
-        n = len(valid_batch)
+        n = self._get_n_samples_in_batch(valid_batch)
         if n > 0:
             if self.var is None:
                 self.mean.update_batch(valid_batch, assume_valid=True)
-                self.var = self.init_var(valid_batch, self.mean())
+                self.var = np.var(valid_batch, axis=self.axis, keepdims=True)
             else:
-                previous_mean = self.mean()
+                previous_mean = self.mean.mean
                 self.mean.update_batch(valid_batch, assume_valid=True)
-                updated_mean = self.mean()
+                updated_mean = self.mean.mean
                 incremental_variance = self.compute_incremental_variance(valid_batch, previous_mean, updated_mean)
                 self.var = ((self.n_samples - n) * self.var + incremental_variance) / self.n_samples
         return self
@@ -409,7 +388,10 @@ class BatchVar(BatchMean):
         """
         if self.var is None:
             raise NoValidSamplesError("No valid samples for calculating variance.")
-        return (self.n_samples / (self.n_samples - self.ddof)) * self.var
+        var_ = (self.n_samples / (self.n_samples - self.ddof)) * self.var
+        if self.axis is not None:
+            return var_.squeeze(axis=self.axis)
+        return var_
 
     def __add__(self, other):
         self.merge_test(other, field="var")
@@ -423,8 +405,8 @@ class BatchVar(BatchMean):
             ret.mean = self.mean + other.mean
             ret.var = self.n_samples * self.var + other.n_samples * other.var
 
-            ret.var += self.n_samples * (self.mean() - ret.mean()) ** 2
-            ret.var += other.n_samples * (other.mean() - ret.mean()) ** 2
+            ret.var += self.n_samples * (self.mean.mean - ret.mean.mean) ** 2
+            ret.var += other.n_samples * (other.mean.mean - ret.mean.mean) ** 2
 
             ret.var /= ret.n_samples
             return ret
