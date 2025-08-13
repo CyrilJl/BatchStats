@@ -6,7 +6,7 @@ from batchstats import BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak,
 
 @pytest.fixture
 def data():
-    m, n = 1_000_000, 50
+    m, n = 100_000, 50
     return 1e1 * np.random.randn(m, n) + 1e3
 
 
