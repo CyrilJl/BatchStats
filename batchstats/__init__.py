@@ -12,6 +12,8 @@ from .stats import (
     BatchStd,
     BatchSum,
     BatchVar,
+    BatchWeightedMean,
+    BatchWeightedSum,
 )
 
 __all__ = [
@@ -25,6 +27,8 @@ __all__ = [
     "BatchStd",
     "BatchSum",
     "BatchVar",
+    "BatchWeightedMean",
+    "BatchWeightedSum",
     "BatchNanMax",
     "BatchNanMean",
     "BatchNanMin",

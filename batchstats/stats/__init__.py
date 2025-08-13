@@ -7,6 +7,8 @@ from .peak_to_peak import BatchPeakToPeak
 from .std import BatchStd
 from .sum import BatchSum
 from .var import BatchVar
+from .weighted_mean import BatchWeightedMean
+from .weighted_sum import BatchWeightedSum
 
 __all__ = [
     "BatchCorr",
@@ -18,4 +20,6 @@ __all__ = [
     "BatchStd",
     "BatchSum",
     "BatchVar",
+    "BatchWeightedMean",
+    "BatchWeightedSum",
 ]
