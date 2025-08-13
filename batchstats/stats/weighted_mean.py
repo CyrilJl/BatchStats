@@ -17,7 +17,7 @@ class BatchWeightedMean(BatchStat):
         self.weighted_sum = BatchWeightedSum(axis=axis)
         # For calculating sum(w)
         self.sum_of_weights = BatchWeightedSum(axis=axis)
-        self.n_samples = None # n_samples is not used in weighted stats
+        self.n_samples = None  # n_samples is not used in weighted stats
 
     def update_batch(self, batch, weights):
         """
@@ -43,10 +43,10 @@ class BatchWeightedMean(BatchStat):
 
             # To prevent division by zero, where sow is zero, we should return NaN or raise an error.
             # Using np.errstate to handle division by zero gracefully.
-            with np.errstate(divide='ignore', invalid='ignore'):
+            with np.errstate(divide="ignore", invalid="ignore"):
                 mean_ = w_sum / sow
                 if hasattr(mean_, "dtype") and np.issubdtype(mean_.dtype, np.floating):
-                    mean_[sow == 0] = np.nan # Set to NaN where sum of weights is zero
+                    mean_[sow == 0] = np.nan  # Set to NaN where sum of weights is zero
 
         except NoValidSamplesError:
             # Re-raise with a more specific message if no samples were processed
@@ -61,9 +61,11 @@ class BatchWeightedMean(BatchStat):
         # Basic checks
         if type(self) != type(other):
             from .._misc import DifferentStatsError
+
             raise DifferentStatsError()
         if self.axis != other.axis:
             from .._misc import DifferentAxisError
+
             raise DifferentAxisError()
 
         # Create a new object and merge the internal calculators

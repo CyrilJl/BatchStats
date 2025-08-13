@@ -124,7 +124,7 @@ class BatchCorr(BatchStat):
         std1 = np.sqrt(var1)
         std2 = np.sqrt(var2)
 
-        with np.errstate(divide='ignore', invalid='ignore'):
+        with np.errstate(divide="ignore", invalid="ignore"):
             corr = cov / np.outer(std1, std2)
 
         return corr

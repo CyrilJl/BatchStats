@@ -63,10 +63,8 @@ class BatchWeightedSum(BatchStat):
         # Check for consistent weight shapes
         # The pattern ignores the batch axis (0) and any summed axes
         axes_to_ignore = set(axis_tuple)
-        axes_to_ignore.add(0) # always ignore batch axis
-        current_pattern = tuple(
-            s for i, s in enumerate(weights.shape) if i not in axes_to_ignore
-        )
+        axes_to_ignore.add(0)  # always ignore batch axis
+        current_pattern = tuple(s for i, s in enumerate(weights.shape) if i not in axes_to_ignore)
         if self._weights_pattern is None:
             self._weights_pattern = current_pattern
         elif self._weights_pattern != current_pattern:
@@ -107,9 +105,11 @@ class BatchWeightedSum(BatchStat):
         # Basic checks from merge_test
         if type(self) != type(other):
             from .._misc import DifferentStatsError
+
             raise DifferentStatsError()
         if self.axis != other.axis:
             from .._misc import DifferentAxisError
+
             raise DifferentAxisError()
 
         if self._is_list_mode:
@@ -122,7 +122,7 @@ class BatchWeightedSum(BatchStat):
             ret._weights_pattern = self._weights_pattern
             return ret
         else:
-            self.merge_test(other, field="sum") # ok to call here
+            self.merge_test(other, field="sum")  # ok to call here
             if self.sum is None:
                 return other
             elif other.sum is None:
