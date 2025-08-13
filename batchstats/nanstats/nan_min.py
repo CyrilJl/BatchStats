@@ -92,7 +92,7 @@ class BatchNanMin(BatchNanStat):
         if np.any(n_valid_samples > 0):
             with warnings.catch_warnings():
                 # suppress warning when all-nan slice is encountered
-                warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
+                warnings.filterwarnings("ignore", r"All-NaN (slice|axis) encountered")
                 batch_min = np.nanmin(processed_batch, axis=self.axis, keepdims=True)
 
             if self.min is None:

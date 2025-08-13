@@ -46,11 +46,11 @@ def weights_3d(data_3d, axis, weights_type):
 
     w_shape = list(shape)
     # This logic is a bit naive, but covers the test cases
-    if weights_type == "broadcast_row": # axis 0
+    if weights_type == "broadcast_row":  # axis 0
         w_shape = [shape[0], 1, 1]
-    elif weights_type == "broadcast_col": # axis 1
+    elif weights_type == "broadcast_col":  # axis 1
         w_shape = [1, shape[1], 1]
-    elif weights_type == "broadcast_plane": # axis (1,2)
+    elif weights_type == "broadcast_plane":  # axis (1,2)
         w_shape = [1, shape[1], shape[2]]
 
     return np.random.rand(*w_shape)
@@ -115,7 +115,7 @@ def test_weighted_merge_3d(data_3d, axis, weights_3d, klass):
 
 
 def test_inconsistent_weights_shape_raises_error(data_3d):
-    bws = BatchWeightedSum(axis=1) # Sum over a non-batch axis
+    bws = BatchWeightedSum(axis=1)  # Sum over a non-batch axis
 
     # First batch with per-column weights
     batch1 = data_3d[:10]
