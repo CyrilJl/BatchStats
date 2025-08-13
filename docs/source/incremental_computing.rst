@@ -8,7 +8,7 @@ This approach has several advantages:
 
 - **Memory Efficiency**: It uses a small, constant amount of memory, regardless of the total dataset size.
 - **Real-time Processing**: It's well-suited for real-time data streams where statistics need to be updated as new data arrives.
-- **Numerical Stability**: For variance and covariance, `batchstats` uses Welford's online algorithm, which is more numerically stable than a naive two-pass approach.
+- **Numerical Stability**: For variance and covariance, ``batchstats`` uses Welford's online algorithm, which is more numerically stable than a naive two-pass approach.
 
 Welford's Online Algorithm
 --------------------------
@@ -46,7 +46,7 @@ Or over multiple axes by providing a tuple to the ``axis`` parameter:
 Usage Examples
 --------------
 
-Here's a simple example of how to use `batchstats` to compute the mean and variance of a dataset that is processed in batches:
+Here's a simple example of how to use ``batchstats`` to compute the mean and variance of a dataset that is processed in batches:
 
 .. code-block:: python
 
@@ -73,7 +73,7 @@ Here's a simple example of how to use `batchstats` to compute the mean and varia
 Merging Statistics
 ------------------
 
-Sometimes, you might process different parts of your data in parallel and need to combine the results. `batchstats` allows you to merge two statistical objects using the ``+`` operator:
+Sometimes, you might process different parts of your data in parallel and need to combine the results. ``batchstats`` allows you to merge two statistical objects using the ``+`` operator:
 
 .. code-block:: python
 
