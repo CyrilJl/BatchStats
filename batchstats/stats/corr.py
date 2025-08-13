@@ -1,6 +1,13 @@
 import numpy as np
 
-from .._misc import NoValidSamplesError, UnequalSamplesNumber, any_nan
+from .._misc import (
+    DifferentAxisError,
+    DifferentShapesError,
+    DifferentStatsError,
+    NoValidSamplesError,
+    UnequalSamplesNumber,
+    any_nan,
+)
 from ..base import BatchStat
 from .cov import BatchCov
 from .var import BatchVar
@@ -126,7 +133,14 @@ class BatchCorr(BatchStat):
         """
         Merge two BatchCorr objects.
         """
-        self.merge_test(other)
+        if type(self) != type(other):
+            raise DifferentStatsError()
+        if self.axis != other.axis:
+            raise DifferentAxisError()
+
+        if self.cov.cov is not None and other.cov.cov is not None:
+            if self.cov.cov.shape != other.cov.cov.shape:
+                raise DifferentShapesError()
 
         if self.n_samples == 0:
             return other
