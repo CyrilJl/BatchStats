@@ -23,7 +23,6 @@ author = "Cyril Joly"
 
 extensions = [
     "sphinx.ext.napoleon",
-    "sphinx_copybutton",
     "sphinx_favicon",
 ]
 
@@ -37,7 +36,7 @@ html_title = project
 html_theme = "sphinxawesome_theme"
 html_static_path = ["_static"]
 html_theme_options = {
-    "main_nav_links": {"Installation": "installation", "Context": "incremental_computing", "API Reference": "api"},
+    "main_nav_links": {"Installation": "installation", "Incremental Computing": "incremental_computing", "API Reference": "api"},
     "extra_header_link_icons": {
         "repository on GitHub": {
             "link": "https://github.com/CyrilJl/batchstats",
