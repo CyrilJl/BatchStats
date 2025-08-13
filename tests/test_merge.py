@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from batchstats import BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak, BatchStd, BatchSum, BatchVar
+from batchstats import BatchCorr, BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak, BatchStd, BatchSum, BatchVar
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def data():
 def test_merge(data):
     data1, data2 = data
     data0 = np.concatenate([data1, data2])
-    for stat in (BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak, BatchStd, BatchSum, BatchVar):
+    for stat in (BatchCorr, BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak, BatchStd, BatchSum, BatchVar):
         s0 = stat().update_batch(data0)
         s1 = stat().update_batch(data1)
         s2 = stat().update_batch(data2)

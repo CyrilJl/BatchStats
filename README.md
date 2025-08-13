@@ -107,5 +107,6 @@ print(f"NaN-aware mean shape: {nan_mean.shape}")
 * `BatchVar`
 * `BatchStd`
 * `BatchCov`
+* `BatchCorr`
 
 For more details on each class, see the [API Reference](https://batchstats.readthedocs.io/en/latest/api.html).

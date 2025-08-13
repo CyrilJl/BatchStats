@@ -19,6 +19,9 @@ These are the standard classes for computing statistics on datasets. If your dat
 .. autoclass:: batchstats.BatchCov
    :members: __init__, update_batch, __call__
 
+.. autoclass:: batchstats.BatchCorr
+   :members: __init__, update_batch, __call__
+
 .. autoclass:: batchstats.BatchMin
    :members: __init__, update_batch, __call__
 
