@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from batchstats import BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak, BatchStd, BatchSum, BatchVar
+from batchstats import BatchCorr, BatchCov, BatchMax, BatchMean, BatchMin, BatchPeakToPeak, BatchStd, BatchSum, BatchVar
 
 
 @pytest.fixture
@@ -131,6 +131,31 @@ def test_cov_2(data, n_batches):
     cov = batchcov()
 
     assert np.allclose(cov, true_cov[:, index])
+
+
+def test_corr(data, n_batches):
+    true_corr = np.corrcoef(data.T)
+
+    batchcorr = BatchCorr()
+    for batch_data in np.array_split(data, n_batches):
+        batchcorr.update_batch(batch_data)
+
+    corr = batchcorr()
+
+    assert np.allclose(corr, true_corr)
+
+
+def test_corr_2(data, n_batches):
+    index = np.arange(25)
+    true_corr = np.corrcoef(data.T, data[:, index].T)[:50, 50:]
+
+    batchcorr = BatchCorr()
+    for batch_data in np.array_split(data, n_batches):
+        batchcorr.update_batch(batch_data, batch_data[:, index])
+
+    corr = batchcorr()
+
+    assert np.allclose(corr, true_corr)
 
 
 def test_mean_2d_features(data_2d_features, n_batches):

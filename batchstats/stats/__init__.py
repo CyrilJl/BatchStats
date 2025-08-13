@@ -1,3 +1,4 @@
+from .corr import BatchCorr
 from .cov import BatchCov
 from .max import BatchMax
 from .mean import BatchMean
@@ -8,6 +9,7 @@ from .sum import BatchSum
 from .var import BatchVar
 
 __all__ = [
+    "BatchCorr",
     "BatchCov",
     "BatchMax",
     "BatchMean",

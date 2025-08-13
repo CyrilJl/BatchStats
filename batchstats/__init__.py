@@ -3,6 +3,7 @@ from importlib.metadata import version
 from .base import BatchNanStat, BatchStat
 from .nanstats import BatchNanMax, BatchNanMean, BatchNanMin, BatchNanPeakToPeak, BatchNanSum
 from .stats import (
+    BatchCorr,
     BatchCov,
     BatchMax,
     BatchMean,
@@ -14,6 +15,7 @@ from .stats import (
 )
 
 __all__ = [
+    "BatchCorr",
     "BatchCov",
     "BatchMax",
     "BatchMean",
