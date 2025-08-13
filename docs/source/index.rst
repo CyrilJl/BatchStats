@@ -9,7 +9,7 @@ Welcome to batchstats's documentation!
 **Batchstats** is a Python package for computing statistics on data that arrives in batches. It's perfect for streaming data or datasets too large to fit into memory.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
    :hidden:
 
