@@ -40,7 +40,6 @@ def weights_type(scenario):
 @pytest.fixture
 def weights_3d(data_3d, axis, weights_type):
     shape = data_3d.shape
-    axis_tuple = (axis,) if isinstance(axis, int) else axis
 
     if weights_type == "full":
         return np.random.rand(*shape)
