@@ -10,18 +10,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}  # Nécessaire pour modifier la branche de la PR
+          ref: ${{ github.head_ref }}
 
-      - uses: astral-sh/ruff-action@v1
-        with:
-          args: --format-only  # Formatage uniquement (sans --fix)
-          change-directory: .  # Optionnel : cible le répertoire racine
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run ruff format
+        run: ruff format .
 
       - name: Commit changes
-        if: success() && steps.ruff.outputs.changes == 'true'
+        if: success()
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add .
-          git commit -m "Format code with Ruff"
-          git push
+          git diff --quiet || (git add . && \
+          git -c user.name="GitHub Actions" \
+              -c user.email="actions@github.com" \
+              commit -m "Format code with Ruff" && \
+          git push)

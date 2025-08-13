@@ -30,3 +30,14 @@ These are the standard classes for computing statistics on datasets. If your dat
 
 .. autoclass:: batchstats.BatchPeakToPeak
    :members: __init__, update_batch, __call__
+
+Weighted Statistics
+===================
+
+These classes are used for computing weighted statistics on datasets.
+
+.. autoclass:: batchstats.BatchWeightedSum
+   :members: __init__, update_batch, __call__
+
+.. autoclass:: batchstats.BatchWeightedMean
+   :members: __init__, update_batch, __call__
