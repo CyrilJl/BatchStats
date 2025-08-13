@@ -4,31 +4,31 @@ Core Classes
 
 These are the standard classes for computing statistics on datasets. If your data contains ``NaN`` values, they will be handled by removing the entire sample (row) that contains them.
 
-.. autoclass:: batchstats.BatchSum
+.. autoclass:: batchstats.stats.BatchSum
    :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.BatchMean
+.. autoclass:: batchstats.stats.BatchMean
    :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.BatchVar
+.. autoclass:: batchstats.stats.BatchVar
    :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.BatchStd
+.. autoclass:: batchstats.stats.BatchStd
    :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.BatchCov
+.. autoclass:: batchstats.stats.BatchCov
    :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.BatchCorr
+.. autoclass:: batchstats.stats.BatchCorr
    :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.BatchMin
+.. autoclass:: batchstats.stats.BatchMin
    :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.BatchMax
+.. autoclass:: batchstats.stats.BatchMax
    :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.BatchPeakToPeak
+.. autoclass:: batchstats.stats.BatchPeakToPeak
    :members: __init__, update_batch, __call__
 
 Weighted Statistics
@@ -36,8 +36,8 @@ Weighted Statistics
 
 These classes are used for computing weighted statistics on datasets.
 
-.. autoclass:: batchstats.BatchWeightedSum
+.. autoclass:: batchstats.stats.BatchWeightedSum
    :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.BatchWeightedMean
+.. autoclass:: batchstats.stats.BatchWeightedMean
    :members: __init__, update_batch, __call__
