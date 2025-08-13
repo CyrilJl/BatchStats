@@ -4,6 +4,9 @@ Core Classes
 
 These are the standard classes for computing statistics on datasets. If your data contains ``NaN`` values, they will be handled by removing the entire sample (row) that contains them.
 
+Non-Weighted Statistics
+=======================
+
 .. autoclass:: batchstats.stats.BatchSum
    :members: __init__, update_batch, __call__
 
