@@ -101,11 +101,11 @@ print(f"NaN-aware mean shape: {nan_mean.shape}")
 
 * `BatchSum` / `BatchNanSum`
 * `BatchMean` / `BatchNanMean`
+* `BatchMin` / `BatchNanMin`
+* `BatchMax` / `BatchNanMax`
+* `BatchPeakToPeak` / `BatchNanPeakToPeak`
 * `BatchVar`
 * `BatchStd`
-* `BatchMin`
-* `BatchMax`
-* `BatchPeakToPeak`
 * `BatchCov`
 
 For more details on each class, see the [API Reference](https://batchstats.readthedocs.io/en/latest/api.html).
