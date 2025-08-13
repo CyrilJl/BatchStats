@@ -9,3 +9,12 @@ These classes are designed to handle datasets that contain ``NaN`` values, simil
 
 .. autoclass:: batchstats.BatchNanMean
    :members: __init__, update_batch, __call__
+
+.. autoclass:: batchstats.BatchNanMin
+   :members: __init__, update_batch, __call__
+
+.. autoclass:: batchstats.BatchNanMax
+   :members: __init__, update_batch, __call__
+
+.. autoclass:: batchstats.BatchNanPeakToPeak
+   :members: __init__, update_batch, __call__

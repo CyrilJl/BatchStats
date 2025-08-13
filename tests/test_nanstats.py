@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from batchstats import BatchNanMean, BatchNanSum
+from batchstats import BatchNanMax, BatchNanMean, BatchNanMin, BatchNanPeakToPeak, BatchNanSum
 
 
 @pytest.fixture
@@ -37,4 +37,34 @@ def test_nanmean(data, n_batches):
     for batch_data in np.array_split(data, n_batches):
         batchmean.update_batch(batch=batch_data)
     batch_stat = batchmean()
+    assert np.allclose(true_stat, batch_stat)
+
+
+def test_nanmin(data, n_batches):
+    true_stat = np.nanmin(data, axis=0)
+
+    batchmin = BatchNanMin()
+    for batch_data in np.array_split(data, n_batches):
+        batchmin.update_batch(batch=batch_data)
+    batch_stat = batchmin()
+    assert np.allclose(true_stat, batch_stat)
+
+
+def test_nanmax(data, n_batches):
+    true_stat = np.nanmax(data, axis=0)
+
+    batchmax = BatchNanMax()
+    for batch_data in np.array_split(data, n_batches):
+        batchmax.update_batch(batch=batch_data)
+    batch_stat = batchmax()
+    assert np.allclose(true_stat, batch_stat)
+
+
+def test_nanptp(data, n_batches):
+    true_stat = np.nanmax(data, axis=0) - np.nanmin(data, axis=0)
+
+    batchptp = BatchNanPeakToPeak()
+    for batch_data in np.array_split(data, n_batches):
+        batchptp.update_batch(batch=batch_data)
+    batch_stat = batchptp()
     assert np.allclose(true_stat, batch_stat)

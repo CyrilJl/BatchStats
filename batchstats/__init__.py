@@ -1,7 +1,7 @@
 from importlib.metadata import version
 
 from .base import BatchNanStat, BatchStat
-from .nanstats import BatchNanMean, BatchNanSum
+from .nanstats import BatchNanMax, BatchNanMean, BatchNanMin, BatchNanPeakToPeak, BatchNanSum
 from .stats import (
     BatchCov,
     BatchMax,
@@ -23,7 +23,10 @@ __all__ = [
     "BatchStd",
     "BatchSum",
     "BatchVar",
+    "BatchNanMax",
     "BatchNanMean",
+    "BatchNanMin",
+    "BatchNanPeakToPeak",
     "BatchNanStat",
     "BatchNanSum",
 ]
