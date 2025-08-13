@@ -17,6 +17,32 @@ Welford's online algorithm is a method for computing the variance (and by extens
 
 The algorithm updates the mean and the sum of squared differences from the mean with each new data point (or batch of data points). This is the core of how ``BatchVar``, ``BatchStd``, and ``BatchCov`` work.
 
+N-dimensional Arrays and Multiple Axes
+--------------------------------------
+
+All ``batchstats`` classes support n-dimensional ``numpy.ndarray`` inputs. You can specify the axis (or axes) to perform the reduction on, just like in ``numpy``.
+
+For example, you can compute a statistic over a single axis:
+
+.. code-block:: python
+
+   from batchstats import BatchMean
+   import numpy as np
+
+   # 3D data
+   data = np.random.rand(10, 5, 8)
+   # mean over the second axis (axis=1)
+   mean = BatchMean(axis=1).update_batch(data)()
+
+
+Or over multiple axes by providing a tuple to the ``axis`` parameter:
+
+.. code-block:: python
+
+   # mean over the last two axes
+   mean_multiple_axes = BatchMean(axis=(1, 2)).update_batch(data)()
+
+
 Usage Examples
 --------------
 

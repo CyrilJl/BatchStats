@@ -51,6 +51,28 @@ print(f"Mean shape: {mean.shape}")
 print(f"Variance shape: {variance.shape}")
 ```
 
+## Advanced Usage
+
+`batchstats` handles n-dimensional `np.ndarray` inputs and allows specifying multiple axes for reduction, just like `numpy`.
+
+```python
+import numpy as np
+from batchstats import BatchMean
+
+# Create a 3D data stream
+data_stream = (np.random.rand(10, 5, 8) for _ in range(5))
+
+# Compute the mean over the last two axes (1 and 2)
+batch_mean_3d = BatchMean(axis=(1, 2))
+
+for batch in data_stream:
+    batch_mean_3d.update_batch(batch)
+
+mean_3d = batch_mean_3d()
+
+print(f"3D Mean shape: {mean_3d.shape}")
+```
+
 ## Handling NaN Values
 
 ``batchstats`` provides `BatchNan*` classes to handle `NaN` values, similar to `numpy`'s `nan*` functions.
