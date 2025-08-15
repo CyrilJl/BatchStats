@@ -34,6 +34,7 @@ exclude_patterns = []
 
 html_title = project
 html_theme = "sphinxawesome_theme"
+html_permalinks = False
 html_static_path = ["_static"]
 html_theme_options = {
     "main_nav_links": {
