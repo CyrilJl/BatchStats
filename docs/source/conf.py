@@ -24,6 +24,7 @@ author = "Cyril Joly"
 extensions = [
     "sphinx.ext.napoleon",
     "sphinx_favicon",
+    "sphinx_togglebutton",
 ]
 
 templates_path = ["_templates"]

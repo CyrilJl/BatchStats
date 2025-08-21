@@ -4,17 +4,32 @@ NaN-handling Classes
 
 These classes are designed to handle datasets that contain ``NaN`` values, similar to ``numpy``'s ``nan*`` functions. They compute statistics by ignoring ``NaN`` values.
 
-.. autoclass:: batchstats.nanstats.BatchNanSum
-   :members: __init__, update_batch, __call__
+.. admonition:: BatchNanSum
+   :class: dropdown
 
-.. autoclass:: batchstats.nanstats.BatchNanMean
-   :members: __init__, update_batch, __call__
+   .. autoclass:: batchstats.nanstats.BatchNanSum
+      :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.nanstats.BatchNanMin
-   :members: __init__, update_batch, __call__
+.. admonition:: BatchNanMean
+   :class: dropdown
 
-.. autoclass:: batchstats.nanstats.BatchNanMax
-   :members: __init__, update_batch, __call__
+   .. autoclass:: batchstats.nanstats.BatchNanMean
+      :members: __init__, update_batch, __call__
 
-.. autoclass:: batchstats.nanstats.BatchNanPeakToPeak
-   :members: __init__, update_batch, __call__
+.. admonition:: BatchNanMin
+   :class: dropdown
+
+   .. autoclass:: batchstats.nanstats.BatchNanMin
+      :members: __init__, update_batch, __call__
+
+.. admonition:: BatchNanMax
+   :class: dropdown
+
+   .. autoclass:: batchstats.nanstats.BatchNanMax
+      :members: __init__, update_batch, __call__
+
+.. admonition:: BatchNanPeakToPeak
+   :class: dropdown
+
+   .. autoclass:: batchstats.nanstats.BatchNanPeakToPeak
+      :members: __init__, update_batch, __call__
