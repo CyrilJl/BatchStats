@@ -1,6 +1,7 @@
-=======================
+:notoc: true
+
 Incremental Computing
-=======================
+=====================
 
 ``batchstats`` is built for scenarios where data arrives in batches or streams. This is often called incremental or online computing. Instead of loading the entire dataset into memory, which can be inefficient or impossible for very large datasets, ``batchstats`` processes data chunk by chunk.
 

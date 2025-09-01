@@ -1,4 +1,5 @@
-=============
+:notoc: true
+
 Core Classes
 =============
 
