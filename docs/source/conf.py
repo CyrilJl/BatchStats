@@ -24,7 +24,6 @@ author = "Cyril Joly"
 extensions = [
     "sphinx.ext.napoleon",
     "sphinx_favicon",
-    "sphinx_togglebutton",
 ]
 
 templates_path = ["_templates"]
@@ -39,7 +38,6 @@ html_permalinks = False
 html_static_path = ["_static"]
 html_theme_options = {
     "main_nav_links": {
-        "Installation": "installation",
         "Incremental Computing": "incremental_computing",
         "API Reference": "api",
     },

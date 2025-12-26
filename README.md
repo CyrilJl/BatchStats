@@ -9,19 +9,17 @@
 
 </div>
 
-``batchstats`` is a Python package for computing statistics on data that arrives in batches. It's perfect for streaming data or datasets too large to fit into memory.
+# BatchStats
 
-For detailed information, please check out the [full documentation](https://batchstats.readthedocs.io).
+BatchStats computes statistics on data that arrives in batches, so you can stream or process large datasets without loading everything into memory. Feed batches with `update_batch`, then call the object to get the final result.
 
 ## Installation
-
-Install ``batchstats`` using ``pip``:
 
 ```console
 pip install batchstats
 ```
 
-Or with `conda`:
+Or with `conda`/`mamba`:
 
 ```console
 conda install -c conda-forge batchstats
@@ -29,25 +27,19 @@ conda install -c conda-forge batchstats
 
 ## Quick Start
 
-Here's how to compute the mean and variance of a dataset in batches:
-
 ```python
 import numpy as np
 from batchstats import BatchMean, BatchVar
 
-# Simulate a data stream
 data_stream = (np.random.randn(100, 10) for _ in range(10))
 
-# Initialize the stat objects
 batch_mean = BatchMean()
 batch_var = BatchVar()
 
-# Process each batch
 for batch in data_stream:
     batch_mean.update_batch(batch)
     batch_var.update_batch(batch)
 
-# Get the final result
 mean = batch_mean()
 variance = batch_var()
 
@@ -55,52 +47,12 @@ print(f"Mean shape: {mean.shape}")
 print(f"Variance shape: {variance.shape}")
 ```
 
-## Advanced Usage
-
-`batchstats` handles n-dimensional `np.ndarray` inputs and allows specifying multiple axes for reduction, just like `numpy`.
-
-```python
-import numpy as np
-from batchstats import BatchMean
-
-# Create a 3D data stream
-data_stream = (np.random.rand(10, 5, 8) for _ in range(5))
-
-# Compute the mean over the last two axes (1 and 2)
-batch_mean_3d = BatchMean(axis=(1, 2))
-
-for batch in data_stream:
-    batch_mean_3d.update_batch(batch)
-
-mean_3d = batch_mean_3d()
-
-print(f"3D Mean shape: {mean_3d.shape}")
-```
-
-## Handling NaN Values
-
-``batchstats`` provides `BatchNan*` classes to handle `NaN` values, similar to `numpy`'s `nan*` functions.
-
-```python
-import numpy as np
-from batchstats import BatchNanMean
-
-# Create data with NaNs
-data = np.random.randn(1000, 5)
-data[::10] = np.nan
-
-# Compute the mean, ignoring NaNs
-nan_mean = BatchNanMean().update_batch(data)()
-
-print(f"NaN-aware mean shape: {nan_mean.shape}")
-```
-
 ## Available Statistics
 
-``batchstats`` supports a variety of common statistics:
-
 * `BatchSum` / `BatchNanSum`
+* `BatchWeightedSum`
 * `BatchMean` / `BatchNanMean`
+* `BatchWeightedMean`
 * `BatchMin` / `BatchNanMin`
 * `BatchMax` / `BatchNanMax`
 * `BatchPeakToPeak` / `BatchNanPeakToPeak`
@@ -109,4 +61,4 @@ print(f"NaN-aware mean shape: {nan_mean.shape}")
 * `BatchCov`
 * `BatchCorr`
 
-For more details on each class, see the [API Reference](https://batchstats.readthedocs.io/en/latest/api.html).
+Docs: https://batchstats.readthedocs.io

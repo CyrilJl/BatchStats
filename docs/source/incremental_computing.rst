@@ -11,6 +11,18 @@ This approach has several advantages:
 - **Real-time Processing**: It's well-suited for real-time data streams where statistics need to be updated as new data arrives.
 - **Numerical Stability**: For variance and covariance, ``batchstats`` uses Welford's online algorithm, which is more numerically stable than a naive two-pass approach.
 
+What BatchStats Offers
+----------------------
+
+``batchstats`` provides a family of incremental statistics classes with a consistent API:
+
+- **Standard stats**: ``BatchSum``, ``BatchMean``, ``BatchMin``, ``BatchMax``, ``BatchPeakToPeak``, ``BatchVar``, ``BatchStd``.
+- **NaN-aware stats**: ``BatchNanSum``, ``BatchNanMean``, ``BatchNanMin``, ``BatchNanMax``, ``BatchNanPeakToPeak``.
+- **Weighted stats**: ``BatchWeightedSum`` and ``BatchWeightedMean`` for per-sample or broadcasted weights.
+- **Covariance / correlation**: ``BatchCov`` and ``BatchCorr`` for 2D inputs (samples x features).
+
+The core workflow is the same across classes: initialize, call ``update_batch`` for each chunk, then call the object to retrieve the final statistic.
+
 Welford's Online Algorithm
 --------------------------
 
@@ -21,7 +33,7 @@ The algorithm updates the mean and the sum of squared differences from the mean 
 N-dimensional Arrays and Multiple Axes
 --------------------------------------
 
-All ``batchstats`` classes support n-dimensional ``numpy.ndarray`` inputs. You can specify the axis (or axes) to perform the reduction on, just like in ``numpy``.
+Most ``batchstats`` classes support n-dimensional ``numpy.ndarray`` inputs. You can specify the axis (or axes) to perform the reduction on, just like in ``numpy``. ``BatchCov`` and ``BatchCorr`` are designed for 2D inputs only (samples x features).
 
 For example, you can compute a statistic over a single axis:
 
@@ -42,6 +54,37 @@ Or over multiple axes by providing a tuple to the ``axis`` parameter:
 
    # mean over the last two axes
    mean_multiple_axes = BatchMean(axis=(1, 2)).update_batch(data)()
+
+
+NaN Handling
+------------
+
+Use the ``BatchNan*`` classes to ignore NaN values instead of dropping entire samples. This mirrors ``numpy.nan*`` behavior and is useful for sensor streams or datasets with missing values.
+
+.. code-block:: python
+
+   import numpy as np
+   from batchstats import BatchNanMean
+
+   data = np.random.randn(1000, 5)
+   data[::10] = np.nan
+
+   nan_mean = BatchNanMean().update_batch(data)()
+
+Weighted Statistics
+-------------------
+
+Weighted statistics support full-shape weights or broadcastable weights. This is useful for importance sampling, confidence weights, or per-sensor reliability.
+
+.. code-block:: python
+
+   import numpy as np
+   from batchstats import BatchWeightedMean
+
+   data = np.random.randn(100, 4)
+   weights = np.random.rand(100, 1)  # broadcast across features
+
+   wmean = BatchWeightedMean(axis=0).update_batch(data, weights)()
 
 
 Usage Examples
@@ -97,3 +140,8 @@ Sometimes, you might process different parts of your data in parallel and need t
 
     # The results should be very close
     assert np.allclose(cov_total(), cov_merged())
+
+Choosing Batch Size
+-------------------
+
+Batch size is a performance tuning parameter. Larger batches reduce overhead and can improve throughput, while smaller batches reduce latency and memory usage. The results are independent of batch size.

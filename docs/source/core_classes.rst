@@ -35,11 +35,15 @@ Non-Weighted Statistics
 .. admonition:: BatchCov
    :class: dropdown
 
+   ``BatchCov`` expects 2D inputs (samples x features).
+
    .. autoclass:: batchstats.stats.BatchCov
       :members: __init__, update_batch, __call__
 
 .. admonition:: BatchCorr
    :class: dropdown
+
+   ``BatchCorr`` expects 2D inputs (samples x features).
 
    .. autoclass:: batchstats.stats.BatchCorr
       :members: __init__, update_batch, __call__
