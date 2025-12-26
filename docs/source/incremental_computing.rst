@@ -114,19 +114,6 @@ Here's a simple example of how to use ``batchstats`` to compute the mean and var
     print("Mean shape:", mean.shape)
     print("Variance shape:", variance.shape)
 
-Executable Example (Thebe)
---------------------------
-
-.. code-block:: python
-   :class: thebe
-
-   import numpy as np
-   from batchstats import BatchMean
-
-   data = np.random.randn(500, 3)
-   mean = BatchMean(axis=0).update_batch(data)()
-   mean
-
 Merging Statistics
 ------------------
 

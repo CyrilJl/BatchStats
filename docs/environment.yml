@@ -7,7 +7,6 @@ dependencies:
   - pydata-sphinx-theme
   - sphinx-copybutton
   - sphinx-favicon
-  - sphinx-thebe
   - sphinx-togglebutton
   - pandoc
   - numpy
