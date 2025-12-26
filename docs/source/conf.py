@@ -24,6 +24,7 @@ author = "Cyril Joly"
 extensions = [
     "sphinx.ext.napoleon",
     "sphinx_favicon",
+    "sphinx_thebe",
 ]
 
 templates_path = ["_templates"]
@@ -74,3 +75,11 @@ html_theme_options = {
 html_logo = "_static/logo_batchstats.svg"
 html_favicon = "_static/logo_batchstats.svg"
 pygments_style = "igor"
+
+# Enable Thebe for executable code cells marked with class "thebe".
+thebe_config = {
+    "selector": ".thebe",
+    "repository_url": "https://github.com/CyrilJl/batchstats",
+    "repository_branch": "main",
+    "kernel_name": "python3",
+}
