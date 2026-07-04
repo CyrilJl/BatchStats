@@ -23,6 +23,9 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/CyrilJl/BatchStats"
 
+[tool.setuptools.packages.find]
+include = ["batchstats*"]
+
 [tool.ruff]
 line-length = 120
 fix = true
