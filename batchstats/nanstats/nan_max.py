@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 
 from .._misc import NoValidSamplesError
@@ -83,23 +81,20 @@ class BatchNanMax(BatchNanStat):
             BatchNanMax: Updated BatchNanMax object.
 
         """
-        processed_batch = self._process_batch(batch)
+        processed_batch, n_valid_samples = self._process_batch(batch)
+        self._update_extremum(processed_batch, n_valid_samples)
+        return self
 
-        # get the number of valid samples along the given axis
-        n_valid_samples = np.isfinite(processed_batch).sum(axis=self.axis)
-
+    def _update_extremum(self, batch, n_valid_samples):
         # only compute the batch_max if there are valid samples
         if np.any(n_valid_samples > 0):
-            with warnings.catch_warnings():
-                # suppress warning when all-nan slice is encountered
-                warnings.filterwarnings("ignore", r"All-NaN (slice|axis) encountered")
-                batch_max = np.nanmax(processed_batch, axis=self.axis, keepdims=True)
-
+            # np.fmax ignores NaNs: no internal copy of the batch (unlike np.nanmax),
+            # no all-NaN warning, and all-NaN slices don't poison the running max
+            batch_max = np.fmax.reduce(batch, axis=self.axis, keepdims=True)
             if self.max is None:
                 self.max = batch_max
             else:
-                self.max = np.maximum(self.max, batch_max)
-        return self
+                self.max = np.fmax(self.max, batch_max)
 
     def __call__(self) -> np.ndarray:
         """
@@ -120,7 +115,11 @@ class BatchNanMax(BatchNanStat):
                 squeezed_max = max_.squeeze(axis=self.axis)
                 # if all values along an axis were nan, the result for this axis is nan
                 if squeezed_max.ndim > 0:
-                    squeezed_max[self.n_samples == 0] = np.nan
+                    no_valid = self.n_samples == 0
+                    if np.any(no_valid):
+                        if not np.issubdtype(squeezed_max.dtype, np.inexact):
+                            squeezed_max = squeezed_max.astype(float)
+                        squeezed_max[no_valid] = np.nan
                 elif self.n_samples == 0:
                     return np.nan
                 return squeezed_max

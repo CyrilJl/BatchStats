@@ -84,7 +84,7 @@ class BatchNanSum(BatchNanStat):
             BatchNanSum: Updated BatchNanSum object.
 
         """
-        batch = self._process_batch(batch)
+        batch, _ = self._process_batch(batch)
         if self.sum is None:
             self.sum = np.nansum(batch, axis=self.axis)
         else:

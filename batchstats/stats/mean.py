@@ -83,13 +83,32 @@ class BatchMean(BatchStat):
         valid_batch = self._process_batch(batch=batch, assume_valid=assume_valid)
         n = self._get_n_samples_in_batch(valid_batch)
         if n > 0:
-            if self.mean is None:
-                self.mean = np.mean(valid_batch, axis=self.axis, keepdims=True)
-            else:
-                self.mean = (
-                    (self.n_samples - n) * self.mean + np.sum(valid_batch, axis=self.axis, keepdims=True)
-                ) / self.n_samples
+            batch_sum = np.sum(valid_batch, axis=self.axis, keepdims=True)
+            self._update_from_sum(batch_sum, n)
         return self
+
+    def _update_from_sum(self, batch_sum, n, count_samples=False):
+        """Update the mean from a precomputed batch sum (keepdims shape) and sample count.
+
+        Lets callers that already computed the column sum (e.g. BatchVar) reuse it
+        instead of triggering a second pass over the batch. Pass count_samples=True
+        when `n_samples` has not already been incremented by `_process_batch`.
+        """
+        if count_samples:
+            self.n_samples += n
+        if self.mean is None:
+            self.mean = batch_sum / n
+        else:
+            self.mean = ((self.n_samples - n) * self.mean + batch_sum) / self.n_samples
+
+    def _value(self):
+        """Current mean with the reduction axis squeezed out, without the defensive copy of __call__.
+
+        Callers must not mutate the returned array: it is a view of the internal state.
+        """
+        if self.axis is not None:
+            return self.mean.squeeze(axis=self.axis)
+        return self.mean
 
     def __call__(self) -> np.ndarray:
         """

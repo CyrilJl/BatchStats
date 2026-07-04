@@ -42,18 +42,24 @@ class BatchNanStat:
 
     def _process_batch(self, batch):
         """
-        Process the input batch, counting NaN values.
+        Process the input batch, counting valid (finite) values.
 
         Args:
             batch (numpy.ndarray): Input batch.
 
         Returns:
-            numpy.ndarray: Processed batch.
+            Tuple[numpy.ndarray, numpy.ndarray]: Processed batch and the number of
+            valid samples per position along the reduction axis.
 
         """
         batch = np.atleast_2d(np.asarray(batch))
+        n_valid = np.isfinite(batch).sum(axis=self.axis)
+        self._add_valid_count(n_valid)
+        return batch, n_valid
+
+    def _add_valid_count(self, n_valid):
         if self.n_samples is None:
-            self.n_samples = np.isfinite(batch).sum(axis=self.axis)
+            # copy: callers may share the same n_valid array between several stats
+            self.n_samples = n_valid.copy()
         else:
-            self.n_samples += np.isfinite(batch).sum(axis=self.axis)
-        return batch
+            self.n_samples += n_valid
