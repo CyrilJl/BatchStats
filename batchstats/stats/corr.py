@@ -87,18 +87,27 @@ class BatchCorr(BatchStat):
             if len(_batch1) != len(_batch2):
                 raise UnequalSamplesNumber("batch1 and batch2 don't have the same lengths.")
 
-            mask = ~any_nan(_batch1, axis=1) & ~any_nan(_batch2, axis=1)
+            # NaN can only occur in inexact dtypes; identical batches need a single scan
+            mask = None
+            if np.issubdtype(_batch1.dtype, np.inexact):
+                mask = ~any_nan(_batch1, axis=1)
+            if _batch2 is not _batch1 and np.issubdtype(_batch2.dtype, np.inexact):
+                mask2 = ~any_nan(_batch2, axis=1)
+                mask = mask2 if mask is None else mask & mask2
 
-            _batch1 = _batch1[mask]
-            _batch2 = _batch2[mask]
+            if mask is not None and not mask.all():
+                if _batch2 is _batch1:
+                    _batch1 = _batch2 = _batch1[mask]
+                else:
+                    _batch1, _batch2 = _batch1[mask], _batch2[mask]
             assume_valid = True
 
         if len(_batch1) > 0:
             self.cov.update_batch(_batch1, _batch2, assume_valid=assume_valid)
-            self.var1.update_batch(_batch1, assume_valid=assume_valid)
-            if self._is_1d:
-                self.var2 = self.var1
-            else:
+            if not self._is_1d:
+                # in 1d mode the variances are the diagonal of the covariance:
+                # no need to maintain separate BatchVar objects
+                self.var1.update_batch(_batch1, assume_valid=assume_valid)
                 self.var2.update_batch(_batch2, assume_valid=assume_valid)
             self.n_samples = self.cov.n_samples
 
@@ -118,11 +127,11 @@ class BatchCorr(BatchStat):
             raise NoValidSamplesError("No valid samples for calculating correlation.")
 
         cov = self.cov()
-        var1 = self.var1()
-        var2 = self.var2()
-
-        std1 = np.sqrt(var1)
-        std2 = np.sqrt(var2)
+        if self._is_1d:
+            std1 = std2 = np.sqrt(np.diag(cov))
+        else:
+            std1 = np.sqrt(self.var1())
+            std2 = np.sqrt(self.var2())
 
         with np.errstate(divide="ignore", invalid="ignore"):
             corr = cov / np.outer(std1, std2)
@@ -152,11 +161,10 @@ class BatchCorr(BatchStat):
 
         ret = BatchCorr(ddof=self.ddof)
         ret.cov = self.cov + other.cov
-        ret.var1 = self.var1 + other.var1
 
-        if self._is_1d:
-            ret.var2 = ret.var1
-        else:
+        # in 1d mode var1/var2 are never populated (variances come from diag(cov))
+        if not self._is_1d:
+            ret.var1 = self.var1 + other.var1
             ret.var2 = self.var2 + other.var2
 
         ret.n_samples = ret.cov.n_samples

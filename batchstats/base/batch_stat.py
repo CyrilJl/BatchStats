@@ -47,9 +47,10 @@ class BatchStat:
 
     def _complementary_axis(self, ndim):
         if isinstance(self.axis, int):
-            return tuple(set(range(ndim)) - set((self.axis,)))
+            axis = {self.axis % ndim}
         else:
-            return tuple(set(range(ndim)) - set(self.axis))
+            axis = {ax % ndim for ax in self.axis}
+        return tuple(set(range(ndim)) - axis)
 
     def _get_n_samples_in_batch(self, batch):
         if self.axis is None:
@@ -81,18 +82,32 @@ class BatchStat:
 
         """
         batch = np.atleast_2d(np.asarray(batch))
-        if assume_valid:
+        # NaN can only occur in inexact (floating/complex) dtypes: skip the scan otherwise
+        if assume_valid or not np.issubdtype(batch.dtype, np.inexact):
             self.n_samples += self._get_n_samples_in_batch(batch)
             return batch
         else:
             axis = self._complementary_axis(ndim=batch.ndim)
             nan_mask = any_nan(batch, axis=axis)
             if nan_mask.any():
-                valid_batch = batch[~nan_mask]
+                valid_batch = self._filter_valid(batch, nan_mask)
             else:
                 valid_batch = batch
             self.n_samples += self._get_n_samples_in_batch(valid_batch)
             return valid_batch
+
+    def _filter_valid(self, batch, nan_mask):
+        """Drop invalid samples along the reduction axis."""
+        axis = self.axis
+        if isinstance(axis, tuple) and len(axis) == 1:
+            axis = axis[0]
+        if isinstance(axis, int):
+            return np.compress(~nan_mask, batch, axis=axis % batch.ndim)
+        raise NotImplementedError(
+            "NaN filtering is only supported for a single reduction axis. "
+            "For multi-axis reductions over data containing NaNs, use the BatchNan* "
+            "classes or pass assume_valid=True after filtering the data yourself."
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"

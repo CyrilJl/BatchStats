@@ -26,9 +26,10 @@ class BatchWeightedMean(BatchStat):
         # Update sum(w*x)
         self.weighted_sum.update_batch(batch, weights=weights)
 
-        # Update sum(w) by calculating sum(broadcasted_w * 1)
-        broadcasted_weights = np.broadcast_to(weights, batch.shape)
-        self.sum_of_weights.update_batch(batch=broadcasted_weights, weights=1)
+        # Update sum(w): summing the broadcast view directly avoids materializing
+        # a batch-sized array (broadcast_to returns a zero-stride view)
+        broadcasted_weights = np.broadcast_to(np.asarray(weights), np.shape(batch))
+        self.sum_of_weights.update_batch(batch=broadcasted_weights, weights=None)
 
         return self
 

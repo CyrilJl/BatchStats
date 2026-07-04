@@ -75,13 +75,22 @@ class BatchCov(BatchStat):
         else:
             if len(batch1) != len(batch2):
                 raise UnequalSamplesNumber("batch1 and batch2 don't have the same lengths.")
-            mask = ~any_nan(batch1, axis=1) & ~any_nan(batch2, axis=1)
-            n = mask.sum()
-            self.n_samples += n
-            if np.all(mask):
+            # NaN can only occur in inexact dtypes; batch2 is batch1 needs a single scan
+            mask = None
+            if np.issubdtype(batch1.dtype, np.inexact):
+                mask = ~any_nan(batch1, axis=1)
+            if batch2 is not batch1 and np.issubdtype(batch2.dtype, np.inexact):
+                mask2 = ~any_nan(batch2, axis=1)
+                mask = mask2 if mask is None else mask & mask2
+            if mask is None or mask.all():
+                self.n_samples += len(batch1)
                 return batch1, batch2
+            self.n_samples += np.count_nonzero(mask)
+            if batch2 is batch1:
+                batch1 = batch2 = batch1[mask]
             else:
-                return batch1[mask], batch2[mask]
+                batch1, batch2 = batch1[mask], batch2[mask]
+            return batch1, batch2
 
     def update_batch(self, batch1, batch2=None, assume_valid=False):
         """
@@ -106,12 +115,17 @@ class BatchCov(BatchStat):
                 if n == 1:
                     self.cov = np.zeros((n1, n2))
                 else:
-                    self.cov = (batch1 - self.mean1()).T @ ((batch2 - self.mean2()) / n)
+                    # center once when both batches are the same array, and divide the
+                    # small (n1, n2) result rather than a batch-sized temporary
+                    centered1 = batch1 - self.mean1._value()
+                    centered2 = centered1 if batch2 is batch1 else batch2 - self.mean2._value()
+                    self.cov = centered1.T @ centered2
+                    self.cov /= n
             else:
-                m1 = self.mean1()
+                m1 = self.mean1._value()
                 self.mean2.update_batch(batch2, assume_valid=True)
-                m2 = self.mean2()
-                self.cov += (batch1 - m1).T @ ((batch2 - m2) / self.mean1.n_samples)
+                m2 = self.mean2._value()
+                self.cov += (batch1 - m1).T @ (batch2 - m2) / self.mean1.n_samples
                 self.cov *= self.mean1.n_samples / self.mean2.n_samples
                 self.mean1.update_batch(batch1, assume_valid=True)
         return self

@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 
 from .._misc import NoValidSamplesError
@@ -83,23 +81,20 @@ class BatchNanMin(BatchNanStat):
             BatchNanMin: Updated BatchNanMin object.
 
         """
-        processed_batch = self._process_batch(batch)
+        processed_batch, n_valid_samples = self._process_batch(batch)
+        self._update_extremum(processed_batch, n_valid_samples)
+        return self
 
-        # get the number of valid samples along the given axis
-        n_valid_samples = np.isfinite(processed_batch).sum(axis=self.axis)
-
+    def _update_extremum(self, batch, n_valid_samples):
         # only compute the batch_min if there are valid samples
         if np.any(n_valid_samples > 0):
-            with warnings.catch_warnings():
-                # suppress warning when all-nan slice is encountered
-                warnings.filterwarnings("ignore", r"All-NaN (slice|axis) encountered")
-                batch_min = np.nanmin(processed_batch, axis=self.axis, keepdims=True)
-
+            # np.fmin ignores NaNs: no internal copy of the batch (unlike np.nanmin),
+            # no all-NaN warning, and all-NaN slices don't poison the running min
+            batch_min = np.fmin.reduce(batch, axis=self.axis, keepdims=True)
             if self.min is None:
                 self.min = batch_min
             else:
-                self.min = np.minimum(self.min, batch_min)
-        return self
+                self.min = np.fmin(self.min, batch_min)
 
     def __call__(self) -> np.ndarray:
         """
@@ -120,7 +115,11 @@ class BatchNanMin(BatchNanStat):
                 squeezed_min = min_.squeeze(axis=self.axis)
                 # if all values along an axis were nan, the result for this axis is nan
                 if squeezed_min.ndim > 0:
-                    squeezed_min[self.n_samples == 0] = np.nan
+                    no_valid = self.n_samples == 0
+                    if np.any(no_valid):
+                        if not np.issubdtype(squeezed_min.dtype, np.inexact):
+                            squeezed_min = squeezed_min.astype(float)
+                        squeezed_min[no_valid] = np.nan
                 elif self.n_samples == 0:
                     return np.nan
                 return squeezed_min

@@ -11,6 +11,11 @@ class BatchWeightedSum(BatchStat):
     The algorithm used is a simple cumulative sum. Each time a new batch is added,
     the weighted sum of the new batch is added to the existing sum.
 
+    .. warning::
+        When axis 0 (the batch axis) is *not* part of the reduced axes, the
+        per-batch results are accumulated in a list, so memory grows linearly
+        with the number of batches instead of staying constant.
+
     .. code:: python
 
         import numpy as np
@@ -54,7 +59,21 @@ class BatchWeightedSum(BatchStat):
     def update_batch(self, batch, weights):
         """
         Update the weighted sum with a new batch of data.
+
+        Passing ``weights=None`` sums the batch as-is (weights of 1) without
+        materializing a batch-sized product.
         """
+        if weights is None:
+            batch_sum = np.sum(a=batch, axis=self.axis, keepdims=True)
+            if self._is_list_mode:
+                self.sum.append(batch_sum)
+            else:
+                if self.sum is None:
+                    self.sum = batch_sum
+                else:
+                    self.sum += batch_sum
+            return self
+
         weights = np.asarray(weights)
 
         axis_tuple = self.axis if isinstance(self.axis, tuple) else (self.axis,)

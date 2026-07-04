@@ -84,8 +84,13 @@ class BatchNanPeakToPeak(BatchNanStat):
             BatchNanPeakToPeak: Updated BatchNanPeakToPeak object.
 
         """
-        self.batchnanmax.update_batch(batch)
-        self.batchnanmin.update_batch(batch)
+        # single isfinite pass shared between the max and min trackers
+        batch = np.atleast_2d(np.asarray(batch))
+        n_valid = np.isfinite(batch).sum(axis=self.axis)
+        self.batchnanmax._add_valid_count(n_valid)
+        self.batchnanmax._update_extremum(batch, n_valid)
+        self.batchnanmin._add_valid_count(n_valid)
+        self.batchnanmin._update_extremum(batch, n_valid)
         return self
 
     def __call__(self) -> np.ndarray:
