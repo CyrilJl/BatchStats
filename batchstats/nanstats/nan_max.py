@@ -134,7 +134,7 @@ class BatchNanMax(BatchNanStat):
         else:
             ret = BatchNanMax(axis=self.axis)
             ret.n_samples = self.n_samples + other.n_samples
-            ret.max = np.maximum(self.max, other.max)
+            ret.max = np.fmax(self.max, other.max)
             return ret
 
     def merge_test(self, other, field=None):

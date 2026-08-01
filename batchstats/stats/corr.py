@@ -142,7 +142,7 @@ class BatchCorr(BatchStat):
         """
         Merge two BatchCorr objects.
         """
-        if type(self) != type(other):
+        if type(self) is not type(other):
             raise DifferentStatsError()
         if self.axis != other.axis:
             raise DifferentAxisError()

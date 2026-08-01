@@ -113,10 +113,11 @@ class BatchStat:
         return f"{self.__class__.__name__}()"
 
     def merge_test(self, other, field: str):
-        if type(self) != type(other):
+        if type(self) is not type(other):
             raise DifferentStatsError()
         if self.axis != other.axis:
             raise DifferentAxisError()
-        if hasattr(self, field) and hasattr(other, field):
-            if getattr(self, field).shape != getattr(other, field).shape:
-                raise DifferentShapesError()
+        left = getattr(self, field, None)
+        right = getattr(other, field, None)
+        if left is not None and right is not None and left.shape != right.shape:
+            raise DifferentShapesError()

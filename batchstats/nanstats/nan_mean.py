@@ -1,3 +1,5 @@
+import numpy as np
+
 from ..base import BatchNanStat
 from .nan_sum import BatchNanSum
 
@@ -93,4 +95,5 @@ class BatchNanMean(BatchNanStat):
             numpy.ndarray: Mean of the batches.
 
         """
-        return self.sum() / self.sum.n_samples
+        with np.errstate(divide="ignore", invalid="ignore"):
+            return self.sum() / self.sum.n_samples

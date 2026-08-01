@@ -2,6 +2,7 @@
   <img src="https://raw.githubusercontent.com/CyrilJl/BatchStats/main/docs/source/_static/logo_batchstats.svg" alt="Logo BatchStats" width="200">
 
 [![PyPI Version](https://img.shields.io/pypi/v/batchstats.svg)](https://pypi.org/project/batchstats/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/batchstats.svg)](https://pypi.org/project/batchstats/)
 [![conda Version](https://anaconda.org/conda-forge/batchstats/badges/version.svg)](https://anaconda.org/conda-forge/batchstats)
 [![Documentation Status](https://img.shields.io/readthedocs/batchstats?logo=read-the-docs)](https://batchstats.readthedocs.io/en/latest/?badge=latest)
 [![Unit tests](https://github.com/CyrilJl/BatchStats/actions/workflows/pytest.yml/badge.svg)](https://github.com/CyrilJl/BatchStats/actions/workflows/pytest.yml)
@@ -10,7 +11,9 @@
 
 # BatchStats
 
-BatchStats computes statistics on data that arrives in batches, so you can stream or process large datasets without loading everything into memory. Feed batches with `update_batch`, then call the object to get the final result.
+BatchStats computes statistics on data that arrives in batches, so you can stream or process large datasets without loading everything into memory. Its incremental algorithms expose a small NumPy-friendly API and support merging independently computed accumulators.
+
+BatchStats requires Python 3.10 or newer.
 
 ## Installation
 
@@ -30,7 +33,8 @@ conda install -c conda-forge batchstats
 import numpy as np
 from batchstats import BatchMean, BatchVar
 
-data_stream = (np.random.randn(100, 10) for _ in range(10))
+rng = np.random.default_rng(0)
+data_stream = (rng.standard_normal((100, 10)) for _ in range(10))
 
 batch_mean = BatchMean()
 batch_var = BatchVar()
@@ -61,3 +65,16 @@ print(f"Variance shape: {variance.shape}")
 * `BatchCorr`
 
 Docs: https://batchstats.readthedocs.io
+
+## Development
+
+Install the development dependencies and run the local quality gates:
+
+```console
+python -m pip install -e ".[dev]"
+python -m ruff check .
+python -m ruff format --check .
+python -m pytest --cov=batchstats
+python -m build
+python -m twine check dist/*
+```

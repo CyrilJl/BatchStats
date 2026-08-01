@@ -122,7 +122,7 @@ class BatchWeightedSum(BatchStat):
 
     def __add__(self, other):
         # Basic checks from merge_test
-        if type(self) != type(other):
+        if type(self) is not type(other):
             from .._misc import DifferentStatsError
 
             raise DifferentStatsError()

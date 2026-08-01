@@ -51,7 +51,7 @@ class BatchWeightedMean(BatchStat):
 
         except NoValidSamplesError:
             # Re-raise with a more specific message if no samples were processed
-            raise NoValidSamplesError("No valid samples for calculating weighted mean.")
+            raise NoValidSamplesError("No valid samples for calculating weighted mean.") from None
 
         return mean_
 
@@ -60,7 +60,7 @@ class BatchWeightedMean(BatchStat):
         Merge two BatchWeightedMean objects.
         """
         # Basic checks
-        if type(self) != type(other):
+        if type(self) is not type(other):
             from .._misc import DifferentStatsError
 
             raise DifferentStatsError()

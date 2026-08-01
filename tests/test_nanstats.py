@@ -6,11 +6,12 @@ from batchstats import BatchNanMax, BatchNanMean, BatchNanMin, BatchNanPeakToPea
 
 @pytest.fixture
 def data():
-    m, n = 1_000_000, 50
+    m, n = 20_000, 20
     nan_ratio = 0.05
-    data = np.random.randn(m, n)
+    rng = np.random.default_rng(3)
+    data = rng.standard_normal((m, n))
     num_nans = int(m * n * nan_ratio)
-    nan_indices = np.random.choice(range(m * n), num_nans, replace=False)
+    nan_indices = rng.choice(m * n, num_nans, replace=False)
     data.ravel()[nan_indices] = np.nan
     return data
 

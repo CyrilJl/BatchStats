@@ -1,28 +1,72 @@
-name: Format with Ruff
+name: Quality
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  format:
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          ref: ${{ github.head_ref }}
+          python-version: "3.14"
+          cache: pip
 
       - name: Install Ruff
-        run: pip install ruff
+        run: python -m pip install "ruff>=0.11,<1"
 
-      - name: Run ruff format
-        run: ruff format .
+      - name: Lint
+        run: python -m ruff check .
 
-      - name: Commit changes
-        if: success()
-        run: |
-          git diff --quiet || (git add . && \
-          git -c user.name="GitHub Actions" \
-              -c user.email="actions@github.com" \
-              commit -m "Format code with Ruff" && \
-          git push)
+      - name: Check formatting
+        run: python -m ruff format --check .
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install build tools
+        run: python -m pip install "build>=1.2,<2" "twine>=6,<8"
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Validate distribution metadata
+        run: python -m twine check dist/*
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install package and documentation dependencies
+        run: python -m pip install ".[docs]"
+
+      - name: Build documentation
+        run: python -m sphinx -W --keep-going -b html docs/source docs/_build/html
