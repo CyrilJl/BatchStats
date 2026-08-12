@@ -1,5 +1,12 @@
 from importlib.metadata import version
 
+from ._misc import (
+    DifferentAxisError,
+    DifferentShapesError,
+    DifferentStatsError,
+    NoValidSamplesError,
+    UnequalSamplesNumber,
+)
 from .base import BatchNanStat, BatchStat
 from .nanstats import BatchNanMax, BatchNanMean, BatchNanMin, BatchNanPeakToPeak, BatchNanSum
 from .stats import (
@@ -22,6 +29,12 @@ __all__ = [
     "BatchMax",
     "BatchMean",
     "BatchMin",
+    "BatchNanMax",
+    "BatchNanMean",
+    "BatchNanMin",
+    "BatchNanPeakToPeak",
+    "BatchNanStat",
+    "BatchNanSum",
     "BatchPeakToPeak",
     "BatchStat",
     "BatchStd",
@@ -29,12 +42,11 @@ __all__ = [
     "BatchVar",
     "BatchWeightedMean",
     "BatchWeightedSum",
-    "BatchNanMax",
-    "BatchNanMean",
-    "BatchNanMin",
-    "BatchNanPeakToPeak",
-    "BatchNanStat",
-    "BatchNanSum",
+    "DifferentAxisError",
+    "DifferentShapesError",
+    "DifferentStatsError",
+    "NoValidSamplesError",
+    "UnequalSamplesNumber",
 ]
 
 __version__ = version("batchstats")

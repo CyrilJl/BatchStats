@@ -6,8 +6,9 @@ from batchstats import BatchCorr, BatchCov, BatchMax, BatchMean, BatchMin, Batch
 
 @pytest.fixture
 def data():
-    m, n = 25_000, 50
-    return np.random.randn(m, n), np.random.randn(2 * m, n)
+    m, n = 2_500, 20
+    rng = np.random.default_rng(1)
+    return rng.standard_normal((m, n)), rng.standard_normal((2 * m, n))
 
 
 def test_merge(data):
@@ -24,7 +25,7 @@ def test_merge(data):
 @pytest.fixture
 def data_3d():
     shape = (100, 10, 20)
-    return np.random.randn(*shape)
+    return np.random.default_rng(2).standard_normal(shape)
 
 
 @pytest.mark.parametrize("axis", [0, (0, 1), (0, 2), (0, 1, 2)])

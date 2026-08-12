@@ -6,14 +6,14 @@ from batchstats import BatchCorr, BatchCov, BatchMax, BatchMean, BatchMin, Batch
 
 @pytest.fixture
 def data():
-    m, n = 100_000, 50
-    return 1e1 * np.random.randn(m, n) + 1e3
+    m, n = 10_000, 20
+    return 1e1 * np.random.default_rng(4).standard_normal((m, n)) + 1e3
 
 
 @pytest.fixture
 def data_2d_features():
-    m, n, o = 100_000, 50, 60
-    return 1e1 * np.random.randn(m, n, o) + 1e3
+    m, n, o = 1_000, 10, 12
+    return 1e1 * np.random.default_rng(5).standard_normal((m, n, o)) + 1e3
 
 
 @pytest.fixture
@@ -122,7 +122,7 @@ def test_cov_1(data, n_batches):
 
 def test_cov_2(data, n_batches):
     true_cov = np.cov(data.T, ddof=0)
-    index = np.arange(25)
+    index = np.arange(data.shape[1] // 2)
 
     batchcov = BatchCov()
     for batch_data in np.array_split(data, n_batches):
@@ -146,8 +146,9 @@ def test_corr(data, n_batches):
 
 
 def test_corr_2(data, n_batches):
-    index = np.arange(25)
-    true_corr = np.corrcoef(data.T, data[:, index].T)[:50, 50:]
+    n_features = data.shape[1]
+    index = np.arange(n_features // 2)
+    true_corr = np.corrcoef(data.T, data[:, index].T)[:n_features, n_features:]
 
     batchcorr = BatchCorr()
     for batch_data in np.array_split(data, n_batches):

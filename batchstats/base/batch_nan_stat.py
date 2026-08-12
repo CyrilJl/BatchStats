@@ -42,7 +42,7 @@ class BatchNanStat:
 
     def _process_batch(self, batch):
         """
-        Process the input batch, counting valid (finite) values.
+        Process the input batch, counting non-NaN values.
 
         Args:
             batch (numpy.ndarray): Input batch.
@@ -53,7 +53,7 @@ class BatchNanStat:
 
         """
         batch = np.atleast_2d(np.asarray(batch))
-        n_valid = np.isfinite(batch).sum(axis=self.axis)
+        n_valid = np.count_nonzero(~np.isnan(batch), axis=self.axis)
         self._add_valid_count(n_valid)
         return batch, n_valid
 

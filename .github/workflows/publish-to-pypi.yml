@@ -3,8 +3,11 @@ name: Publish to PyPI
 on:
   push:
     tags:
-      - '*'
+      - "v*"
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   publish:
@@ -17,7 +20,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: 3.x
+          python-version: "3.14"
+          cache: pip
 
       - name: Install dependencies
         run: |
@@ -27,6 +31,9 @@ jobs:
       - name: Build package
         run: |
           python -m build
+
+      - name: Validate distribution metadata
+        run: twine check dist/*
 
       - name: Publish to PyPI
         env:

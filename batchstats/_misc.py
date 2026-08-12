@@ -1,9 +1,4 @@
-import warnings
-
 import numpy as np
-
-# Customize the warning format
-warnings.formatwarning = lambda msg, *args, **kwargs: str(msg) + "\n"
 
 
 class NoValidSamplesError(ValueError):
@@ -48,7 +43,7 @@ def any_nan(x, axis=None):
         numpy.ndarray: Boolean array indicating NaN presence.
 
     """
-    return np.isnan(np.add.reduce(array=x, axis=axis))
+    return np.isnan(x).any(axis=axis)
 
 
 def check_params(param, params=None, types=None):
@@ -70,8 +65,3 @@ def check_params(param, params=None, types=None):
 
     # Return the parameter if it passes the checks
     return param
-
-
-def warning(msg):
-    # Trigger a warning with the provided message
-    return warnings.warn(msg)

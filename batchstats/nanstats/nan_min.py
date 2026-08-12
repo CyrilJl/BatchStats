@@ -134,7 +134,7 @@ class BatchNanMin(BatchNanStat):
         else:
             ret = BatchNanMin(axis=self.axis)
             ret.n_samples = self.n_samples + other.n_samples
-            ret.min = np.minimum(self.min, other.min)
+            ret.min = np.fmin(self.min, other.min)
             return ret
 
     def merge_test(self, other, field=None):

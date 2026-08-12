@@ -8,7 +8,7 @@ from batchstats.stats.weighted_sum import BatchWeightedSum
 @pytest.fixture
 def data_3d():
     m, n, p = 100, 50, 10
-    return 1e1 * np.random.randn(m, n, p) + 1e3
+    return 1e1 * np.random.default_rng(6).standard_normal((m, n, p)) + 1e3
 
 
 axis_weight_scenarios = [
@@ -40,9 +40,10 @@ def weights_type(scenario):
 @pytest.fixture
 def weights_3d(data_3d, axis, weights_type):
     shape = data_3d.shape
+    rng = np.random.default_rng(7)
 
     if weights_type == "full":
-        return np.random.rand(*shape)
+        return rng.random(shape)
 
     w_shape = list(shape)
     # This logic is a bit naive, but covers the test cases
@@ -53,7 +54,7 @@ def weights_3d(data_3d, axis, weights_type):
     elif weights_type == "broadcast_plane":  # axis (1,2)
         w_shape = [1, shape[1], shape[2]]
 
-    return np.random.rand(*w_shape)
+    return rng.random(w_shape)
 
 
 @pytest.fixture
@@ -78,7 +79,7 @@ def test_weighted_stats_3d(data_3d, n_batches, axis, weights_3d, klass):
     else:
         weights_batches = [weights_3d] * n_batches
 
-    for batch_data, batch_weights in zip(data_batches, weights_batches):
+    for batch_data, batch_weights in zip(data_batches, weights_batches, strict=True):
         batch_op.update_batch(batch=batch_data, weights=batch_weights)
 
     batch_stat = batch_op()
@@ -119,11 +120,12 @@ def test_inconsistent_weights_shape_raises_error(data_3d):
 
     # First batch with per-column weights
     batch1 = data_3d[:10]
-    weights1 = np.random.rand(1, data_3d.shape[1], 1)
+    rng = np.random.default_rng(8)
+    weights1 = rng.random((1, data_3d.shape[1], 1))
     bws.update_batch(batch1, weights1)
 
     # Second batch with per-plane weights
     batch2 = data_3d[10:20]
-    weights2 = np.random.rand(1, data_3d.shape[1], data_3d.shape[2])
+    weights2 = rng.random((1, data_3d.shape[1], data_3d.shape[2]))
     with pytest.raises(ValueError, match="Inconsistent weights shape pattern"):
         bws.update_batch(batch2, weights2)

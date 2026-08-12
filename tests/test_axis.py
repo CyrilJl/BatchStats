@@ -7,7 +7,7 @@ from batchstats import BatchStd, BatchVar
 @pytest.fixture
 def data_3d():
     shape = (100, 10, 20)
-    return np.random.randn(*shape)
+    return np.random.default_rng(0).standard_normal(shape)
 
 
 @pytest.fixture
