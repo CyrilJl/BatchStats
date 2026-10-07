@@ -1,0 +1,659 @@
+{
+  "environment": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "python": "3.14.6 (main, Jun 11 2026, 04:05:02) [MSC v.1944 64 bit (AMD64)]",
+    "logical_cpus": 16,
+    "physical_cpus": 8,
+    "total_ram_bytes": 68633198592,
+    "versions": {
+      "batchstats": "0.6",
+      "numpy": "2.5.1",
+      "xarray": "2026.9.0",
+      "dask": "2026.8.0",
+      "pandas": "3.0.6",
+      "netCDF4": "1.7.4",
+      "psutil": "7.2.2"
+    },
+    "batchstats_source": "C:\\Users\\cjoly\\Python\\BatchStats\\batchstats\\xarray.py",
+    "batchstats_xarray_sha256": "fc24282bbb6c69941156511fdf60fd7cf1e1c61b723214ca89b97f004b6af7cd",
+    "netcdf_library": "4.9.3",
+    "hdf5_library": "1.14.6",
+    "dask_workers": null,
+    "files": 10,
+    "shape_per_file": {
+      "time": 32,
+      "y": 1024,
+      "x": 1024
+    },
+    "disk_bytes": 1426231540,
+    "chunk_time": 4,
+    "repeat": 3,
+    "cache": "warm OS cache; one untimed run per method; no cache eviction"
+  },
+  "runs": [
+    {
+      "repeat": 1,
+      "method": "mfdataset-default",
+      "seconds": 2.6036547000985593,
+      "baseline_rss_bytes": 107270144,
+      "peak_rss_bytes": 983003136,
+      "peak_minus_baseline_bytes": 875732992,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 1,
+      "method": "mfdataset-chunked",
+      "seconds": 2.885044700000435,
+      "baseline_rss_bytes": 107139072,
+      "peak_rss_bytes": 391417856,
+      "peak_minus_baseline_bytes": 284278784,
+      "max_abs_error": 1.2071350774522926e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 1,
+      "method": "batchstats-file",
+      "seconds": 3.117840399965644,
+      "baseline_rss_bytes": 107089920,
+      "peak_rss_bytes": 321155072,
+      "peak_minus_baseline_bytes": 214065152,
+      "max_abs_error": 1.3744793481151873e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 1,
+      "method": "mfdataset-single",
+      "seconds": 3.56534649990499,
+      "baseline_rss_bytes": 107122688,
+      "peak_rss_bytes": 486989824,
+      "peak_minus_baseline_bytes": 379867136,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 1,
+      "method": "batchstats-slice",
+      "seconds": 4.786098100012168,
+      "baseline_rss_bytes": 106946560,
+      "peak_rss_bytes": 174149632,
+      "peak_minus_baseline_bytes": 67203072,
+      "max_abs_error": 3.2820279083356496e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 2,
+      "method": "mfdataset-single",
+      "seconds": 3.664620300056413,
+      "baseline_rss_bytes": 107098112,
+      "peak_rss_bytes": 486526976,
+      "peak_minus_baseline_bytes": 379428864,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 2,
+      "method": "mfdataset-default",
+      "seconds": 2.8317984000314027,
+      "baseline_rss_bytes": 107151360,
+      "peak_rss_bytes": 1008951296,
+      "peak_minus_baseline_bytes": 901799936,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 2,
+      "method": "batchstats-slice",
+      "seconds": 4.870494399918243,
+      "baseline_rss_bytes": 107413504,
+      "peak_rss_bytes": 174624768,
+      "peak_minus_baseline_bytes": 67211264,
+      "max_abs_error": 3.2820279083356496e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 2,
+      "method": "batchstats-file",
+      "seconds": 3.0997758000157773,
+      "baseline_rss_bytes": 107024384,
+      "peak_rss_bytes": 320675840,
+      "peak_minus_baseline_bytes": 213651456,
+      "max_abs_error": 1.3744793481151873e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 2,
+      "method": "mfdataset-chunked",
+      "seconds": 2.8424711999250576,
+      "baseline_rss_bytes": 107282432,
+      "peak_rss_bytes": 387035136,
+      "peak_minus_baseline_bytes": 279752704,
+      "max_abs_error": 1.2071350774522926e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 3,
+      "method": "mfdataset-single",
+      "seconds": 3.561543200048618,
+      "baseline_rss_bytes": 107311104,
+      "peak_rss_bytes": 478404608,
+      "peak_minus_baseline_bytes": 371093504,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 3,
+      "method": "batchstats-slice",
+      "seconds": 4.810088100028224,
+      "baseline_rss_bytes": 107167744,
+      "peak_rss_bytes": 173916160,
+      "peak_minus_baseline_bytes": 66748416,
+      "max_abs_error": 3.2820279083356496e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 3,
+      "method": "mfdataset-default",
+      "seconds": 2.6589292000280693,
+      "baseline_rss_bytes": 107040768,
+      "peak_rss_bytes": 1012432896,
+      "peak_minus_baseline_bytes": 905392128,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 3,
+      "method": "batchstats-file",
+      "seconds": 3.168649600003846,
+      "baseline_rss_bytes": 107233280,
+      "peak_rss_bytes": 321306624,
+      "peak_minus_baseline_bytes": 214073344,
+      "max_abs_error": 1.3744793481151873e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 3,
+      "method": "mfdataset-chunked",
+      "seconds": 2.873952000052668,
+      "baseline_rss_bytes": 107294720,
+      "peak_rss_bytes": 385310720,
+      "peak_minus_baseline_bytes": 278016000,
+      "max_abs_error": 1.2071350774522926e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    }
+  ],
+  "summary": [
+    {
+      "method": "batchstats-file",
+      "median_seconds": 3.117840399965644,
+      "min_seconds": 3.0997758000157773,
+      "max_seconds": 3.168649600003846,
+      "median_peak_mib": 306.27734375,
+      "max_peak_mib": 306.421875
+    },
+    {
+      "method": "batchstats-slice",
+      "median_seconds": 4.810088100028224,
+      "min_seconds": 4.786098100012168,
+      "max_seconds": 4.870494399918243,
+      "median_peak_mib": 166.08203125,
+      "max_peak_mib": 166.53515625
+    },
+    {
+      "method": "mfdataset-single",
+      "median_seconds": 3.56534649990499,
+      "min_seconds": 3.561543200048618,
+      "max_seconds": 3.664620300056413,
+      "median_peak_mib": 463.98828125,
+      "max_peak_mib": 464.4296875
+    },
+    {
+      "method": "mfdataset-default",
+      "median_seconds": 2.6589292000280693,
+      "min_seconds": 2.6036547000985593,
+      "max_seconds": 2.8317984000314027,
+      "median_peak_mib": 962.2109375,
+      "max_peak_mib": 965.53125
+    },
+    {
+      "method": "mfdataset-chunked",
+      "median_seconds": 2.873952000052668,
+      "min_seconds": 2.8424711999250576,
+      "max_seconds": 2.885044700000435,
+      "median_peak_mib": 369.10546875,
+      "max_peak_mib": 373.28515625
+    }
+  ],
+  "reviewed_revision": "0f30f58",
+  "review_probes": {
+    "bugs": {
+      "BatchCov": "cannot rename 'x' because it is not a variable or dimension in this dataset",
+      "BatchCorr": "cannot rename 'x' because it is not a variable or dimension in this dataset",
+      "changed_file_accepted": {
+        "coords": [
+          100.0,
+          200.0
+        ],
+        "count": 6
+      }
+    },
+    "copies": {
+      "shape": [
+        1,
+        1024,
+        1024
+      ],
+      "variables": 3,
+      "unique_input_coordinate_mib": 16.0,
+      "stored_coordinate_mib": 48.0,
+      "runs": [
+        {
+          "mode": "current",
+          "median_ms": 34.1018500039354,
+          "peak_tracked_mib": 20.01425266265869
+        },
+        {
+          "mode": "validation_without_snapshot",
+          "median_ms": 21.530349971726537,
+          "peak_tracked_mib": 4.013665199279785
+        }
+      ]
+    }
+  }
+}

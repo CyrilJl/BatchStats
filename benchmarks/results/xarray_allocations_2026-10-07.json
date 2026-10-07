@@ -1,0 +1,33 @@
+{
+  "baseline": {
+    "variables": 3,
+    "shape": [
+      1,
+      1024,
+      1024
+    ],
+    "unique_coordinate_mib": 48.0,
+    "validation_median_ms": 34.17009994154796,
+    "validation_peak_traced_mib": 20.01425266265869,
+    "checkpoint_array_mib": 108.0,
+    "export_peak_traced_mib": 108.0238151550293,
+    "load_peak_traced_mib": 220.12993240356445,
+    "merge_peak_traced_mib": 132.0163345336914
+  },
+  "optimized": {
+    "variables": 3,
+    "shape": [
+      1,
+      1024,
+      1024
+    ],
+    "unique_coordinate_mib": 16.0,
+    "validation_median_ms": 22.469600022304803,
+    "validation_peak_traced_mib": 4.013665199279785,
+    "checkpoint_array_mib": 52.0,
+    "export_peak_traced_mib": 52.023000717163086,
+    "load_peak_traced_mib": 53.111634254455566,
+    "merge_peak_traced_mib": 52.009849548339844
+  },
+  "implementation_revision": "b8ad0c056125456b0bdd61cd2f20c0e438654d7e"
+}
