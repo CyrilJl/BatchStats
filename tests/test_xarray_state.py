@@ -368,3 +368,78 @@ def test_unsupported_index_fails_explicitly(data, index):
     data = data.assign_coords(station=index)
     with pytest.raises(TypeError, match="Checkpoint indexes"):
         bx.BatchMean("time").update_batch(data).to_state()
+
+
+def test_shared_arrays_saved_once_and_restored_independently(tmp_path, data):
+    dataset = xr.Dataset({"a": data, "b": data * 2})
+    accumulator = bx.BatchNanMean("time").update_batch(dataset)
+    state = accumulator.to_state()
+    variables = state["metadata"]["variables"]
+    for variable in variables:
+        fields = variable["kernel"]["fields"]
+        assert fields["n_samples"]["key"] == fields["sum"]["fields"]["n_samples"]["key"]
+    latitude_keys = [
+        next(c["data"]["key"] for c in v["layout"]["coords"]["variables"] if c["name"] == "latitude") for v in variables
+    ]
+    assert latitude_keys[0] == latitude_keys[1]
+    path = tmp_path / "shared.npz"
+    accumulator.save(path)
+    for restored in (bx.BatchNanMean.from_state(state), bx.BatchNanMean.load(path)):
+        for kernel in restored._accumulators.values():
+            assert kernel.n_samples is kernel.sum.n_samples
+        coords = [layout.coords.latitude.values for layout in restored._layouts.values()]
+        assert np.shares_memory(*coords)
+        assert not np.shares_memory(coords[0], dataset.latitude.values)
+        expected = accumulator()
+        for array in state["arrays"].values():
+            if array.dtype.kind in "iuf":
+                array[...] = 0
+        xr.testing.assert_identical(restored(), expected)
+
+
+def test_old_v1_duplicate_count_arrays_still_load(data):
+    original = bx.BatchNanMean("time").update_batch(data)
+    state = original.to_state()
+    fields = state["metadata"]["variables"][0]["kernel"]["fields"]
+    old_key = fields["n_samples"]["key"]
+    duplicate_key = "old_duplicate_count"
+    state["arrays"][duplicate_key] = state["arrays"][old_key].copy()
+    fields["n_samples"]["key"] = duplicate_key
+    restored = bx.BatchNanMean.from_state(state)
+    kernel = restored._accumulators[None]
+    assert kernel.n_samples is kernel.sum.n_samples
+    xr.testing.assert_identical(restored(), original())
+    restored.update_batch(data)
+    xr.testing.assert_identical(restored(), original.update_batch(data)())
+
+
+def test_load_owns_npz_arrays_without_an_extra_copy(tmp_path, data, monkeypatch):
+    original = bx.BatchMean("time").update_batch(data)
+    path = tmp_path / "checkpoint.npz"
+    original.save(path)
+    with np.load(path, allow_pickle=False) as archive:
+        archive_type = type(archive)
+    getitem = archive_type.__getitem__
+    read_arrays = {}
+
+    def record(archive, key):
+        array = getitem(archive, key)
+        read_arrays[key] = array
+        return array
+
+    monkeypatch.setattr(archive_type, "__getitem__", record)
+    loaded = bx.BatchMean.load(path)
+    metadata = json.loads(str(read_arrays["metadata"]))
+    key = metadata["variables"][0]["kernel"]["fields"]["mean"]["key"]
+    assert loaded._accumulators[None].mean is read_arrays[key]
+    output = loaded()
+    output.values[:] = 0
+    xr.testing.assert_identical(loaded(), original())
+
+
+def test_shared_array_descriptors_are_each_validated(data):
+    state = bx.BatchNanMean("time").update_batch(data).to_state()
+    fields = state["metadata"]["variables"][0]["kernel"]["fields"]
+    fields["sum"]["fields"]["n_samples"]["shape"] = [999]
+    with pytest.raises(ValueError, match="shape"):
+        bx.BatchNanMean.from_state(state)

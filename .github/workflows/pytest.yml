@@ -38,7 +38,7 @@ jobs:
 
       - name: Install optional xarray support
         if: matrix.xarray
-        run: python -m pip install ".[xarray]" "dask[array]"
+        run: python -m pip install ".[xarray]" "dask[array]" netCDF4
 
       - name: Install minimum xarray version
         if: matrix.xarray == 'minimum'

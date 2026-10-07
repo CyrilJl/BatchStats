@@ -64,9 +64,9 @@ class _Layout:
             reduced,
             remaining,
             tuple(array.sizes[d] for d in remaining),
-            coords.copy(deep=True),
+            coords,
             array.name,
-            deepcopy(array.attrs) if keep_attrs else {},
+            array.attrs if keep_attrs else {},
         )
 
     def check(self, other):
@@ -154,11 +154,23 @@ class _Reduction:
                 if set(array.dims) != set(order):
                     raise ValueError("Batch dimensions must match.")
                 array = array.transpose(*order)
-            layout = _Layout.from_array(array, self.dim, self.keep_attrs)
+            # A candidate is only a view used for validation. Snapshot metadata
+            # once, below, when establishing the first batch's schema.
+            layout = _Layout.from_array(array, self.dim, self.keep_attrs and previous is None)
             if previous is not None:
                 previous.check(layout)
                 layout = previous
             prepared[name] = (array, layout)
+        if not layouts:
+            retained = {c for _, layout in prepared.values() for c in layout.coords.variables}
+            coords = batch.coords.to_dataset().drop_vars([c for c in batch.coords if c not in retained])
+            # Deep copying lazy backend arrays alone does not detach them from
+            # their file. Load only retained coordinates, then own their buffers.
+            # The shallow copy prevents load() from changing the caller's cache.
+            snapshot = coords.copy(deep=False).load().copy(deep=True)
+            for _, layout in prepared.values():
+                layout.coords = snapshot.drop_vars([c for c in snapshot.coords if c not in layout.coords])
+                layout.attrs = deepcopy(layout.attrs)
         return kind, prepared
 
     def _update(self, batch, options):
@@ -261,11 +273,29 @@ class _Reduction:
             raise ValueError("Container types and variables must match.")
         for name, layout in self._layouts.items():
             layout.check(other._layouts[name])
-        result = deepcopy(self)
+        # Copy metadata together (preserving internal coordinate sharing), but
+        # do not copy kernels that will immediately be replaced by merged ones.
+        result = object.__new__(type(self))
+        result.__dict__.update(deepcopy({k: v for k, v in vars(self).items() if k != "_accumulators"}))
         result._accumulators = {
-            name: deepcopy(accumulator + other._accumulators[name]) for name, accumulator in self._accumulators.items()
+            name: _own_merged_kernel(accumulator + other._accumulators[name], accumulator, other._accumulators[name])
+            for name, accumulator in self._accumulators.items()
         }
         return result
+
+
+def _own_merged_kernel(merged, left, right):
+    """Detach empty-operand aliases, including children of composite kernels.
+
+    The NumPy kernels allocate new numeric buffers when combining populated
+    states, but may return an existing kernel when the other operand is empty.
+    """
+    if merged is left or merged is right:
+        return deepcopy(merged)
+    for name, child in vars(merged).items():
+        if hasattr(child, "update_batch"):
+            setattr(merged, name, _own_merged_kernel(child, getattr(left, name), getattr(right, name)))
+    return merged
 
 
 class BatchSum(_Reduction):
@@ -452,7 +482,7 @@ class BatchCov(_Reduction):
         if self._paired is not None and self._paired != paired:
             raise ValueError("Cannot mix updates with and without batch2.")
         kind, left = self._prepare(batch)
-        right_kind, right = self._prepare(batch if batch2 is None else batch2, self._right_layouts)
+        right_kind, right = (kind, left) if batch2 is None else self._prepare(batch2, self._right_layouts)
         if kind is not right_kind or left.keys() != right.keys():
             raise ValueError("Paired batches must have matching container types and variables.")
         generated_names = {
@@ -501,7 +531,12 @@ class BatchCov(_Reduction):
         rename = {name: f"{name}_2" for name in set(right.coords.variables) | set(right.remaining)}
         if set(rename.values()) & (set(left.coords.variables) | set(left.remaining)):
             raise ValueError("Covariance output names collide with the '_2' suffix; rename the input coordinates.")
-        coords = xr.merge([left.coords, right.coords.rename(rename)], join="exact")
+        coordinate_rename = {
+            name: target
+            for name, target in rename.items()
+            if name in right.coords.variables or name in right.coords.dims
+        }
+        coords = xr.merge([left.coords, right.coords.rename(coordinate_rename)], join="exact")
         return _Layout(
             (),
             left.remaining + tuple(rename[d] for d in right.remaining),

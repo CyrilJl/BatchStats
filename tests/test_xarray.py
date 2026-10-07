@@ -419,3 +419,137 @@ def test_matrix_multiple_reduced_dimensions(data, cls):
     accumulator.update_batch(data.isel(time=slice(3, None)).transpose("x", "y", "time"))
     expected = np.cov(expected_data.T, ddof=0) if cls is bx.BatchCov else np.corrcoef(expected_data.T)
     np.testing.assert_allclose(accumulator(), expected)
+
+
+@pytest.mark.parametrize("dataset", [False, True])
+@pytest.mark.parametrize("replace_file", [False, True])
+def test_netcdf_coordinates_detached_from_source(tmp_path, dataset, replace_file):
+    pytest.importorskip("netCDF4")
+    first = xr.DataArray(
+        np.arange(6.0).reshape(3, 2), dims=("time", "x"), name="a", coords={"aux": ("x", [10.0, 20.0])}
+    )
+    path = tmp_path / "source.nc"
+    first.to_netcdf(path, engine="netcdf4")
+    with xr.open_dataset(path, engine="netcdf4", cache=False) as batch:
+        accumulator = bx.BatchMean("time").update_batch(batch if dataset else batch.a)
+    path.unlink()
+    if replace_file:
+        first.assign_coords(aux=("x", [100.0, 200.0])).to_netcdf(path, engine="netcdf4")
+        with xr.open_dataset(path, engine="netcdf4", cache=False) as batch:
+            with pytest.raises(ValueError, match="coordinates"):
+                accumulator.update_batch(batch if dataset else batch.a)
+    expected = first.mean("time")
+    if dataset:
+        expected = expected.to_dataset()
+    xr.testing.assert_identical(accumulator(), expected)
+    checkpoint = tmp_path / "checkpoint.npz"
+    accumulator.save(checkpoint)
+    xr.testing.assert_identical(bx.BatchMean.load(checkpoint)(), expected)
+
+
+@pytest.mark.parametrize("cls", [bx.BatchCov, bx.BatchCorr])
+@pytest.mark.parametrize("paired", [False, True])
+@pytest.mark.parametrize("dataset", [False, True])
+def test_matrix_without_dimension_coordinates(tmp_path, cls, paired, dataset):
+    raw = np.random.default_rng(9).normal(size=(7, 3))
+    first = xr.DataArray(raw, dims=("time", "x"), name="a")
+    second = xr.DataArray(raw[:, :2] ** 2, dims=("time", "feature"), name="a") if paired else None
+    if dataset:
+        first = first.to_dataset()
+        second = second.to_dataset() if paired else None
+    accumulator = cls("time").update_batch(first, second)
+    path = tmp_path / "matrix.npz"
+    accumulator.save(path)
+    restored = cls.load(path)
+    result = restored()["a"] if dataset else restored()
+    op = np.cov if cls is bx.BatchCov else np.corrcoef
+    kwargs = {"ddof": 0} if cls is bx.BatchCov else {}
+    expected = op(raw.T, (raw[:, :2] ** 2).T, **kwargs)[:3, 3:] if paired else op(raw.T, **kwargs)
+    np.testing.assert_allclose(result, expected)
+    assert result.dims == ("x", "feature_2" if paired else "x_2")
+    restored.update_batch(first, second)
+    xr.testing.assert_allclose(restored(), (accumulator + accumulator)())
+
+
+def test_dataset_coordinates_shared_internally_but_owned(data):
+    dataset = xr.Dataset({"a": data, "b": data * 2, "c": data.isel(x=0, drop=True).drop_vars("latitude")})
+    accumulator = bx.BatchMean("time").update_batch(dataset)
+    expected = accumulator()
+    a, b = accumulator._layouts["a"].coords, accumulator._layouts["b"].coords
+    assert np.shares_memory(a.latitude.values, b.latitude.values)
+    assert not np.shares_memory(a.latitude.values, dataset.latitude.values)
+    assert "latitude" not in accumulator._layouts["c"].coords
+    dataset.latitude.values[:] = -1
+    output = accumulator()
+    output.latitude.values[:] = -2
+    xr.testing.assert_identical(accumulator(), expected)
+    merged = accumulator + accumulator
+    assert np.shares_memory(merged._layouts["a"].coords.latitude, merged._layouts["b"].coords.latitude)
+    assert not np.shares_memory(merged._layouts["a"].coords.latitude, a.latitude)
+
+
+def test_subsequent_batches_do_not_snapshot_metadata(data):
+    class CannotCopy:
+        def __deepcopy__(self, memo):
+            raise AssertionError("Metadata of later batches must not be copied")
+
+    accumulator = bx.BatchMean("time", keep_attrs=True).update_batch(data)
+    expected = accumulator()
+    next_batch = data.copy(deep=True)
+    next_batch.attrs["new"] = CannotCopy()
+    next_batch.latitude.attrs["new"] = CannotCopy()
+    accumulator.update_batch(next_batch)
+    xr.testing.assert_identical(accumulator(), expected)
+
+
+def test_coordinate_snapshot_loads_only_retained_coordinates():
+    da = pytest.importorskip("dask.array")
+    from dask import delayed
+
+    @delayed
+    def forbidden():
+        raise AssertionError("Reduced coordinates must not be computed")
+
+    values = np.arange(6.0).reshape(3, 2)
+    data = xr.DataArray(
+        da.from_array(values, chunks=(1, 2)),
+        dims=("time", "x"),
+        coords={
+            "aux": ("x", da.from_array(np.array([10.0, 20.0]))),
+            "discarded": ("time", da.from_delayed(forbidden(), shape=(3,), dtype=float)),
+        },
+    )
+    accumulator = bx.BatchMean("time").update_batch(data)
+    assert isinstance(data.aux.data, da.Array)  # The input was not loaded in place.
+    assert isinstance(accumulator._layouts[None].coords.aux.data, np.ndarray)
+    expected = xr.DataArray(values.mean(axis=0), dims="x", coords={"aux": ("x", [10.0, 20.0])}, name=data.name)
+    xr.testing.assert_identical(accumulator(), expected)
+
+
+@pytest.mark.parametrize("name", bx.__all__)
+@pytest.mark.parametrize("empty_side", [None, "left", "right"])
+def test_merge_kernels_never_alias_operands(data, name, empty_side):
+    def make(empty):
+        cls = getattr(bx, name)
+        accumulator = cls(2, "time") if "TopK" in name else cls("time")
+        batch = data.isel(time=slice(0, 0)) if empty else data
+        if isinstance(accumulator, bx.BatchWeightedSum):
+            return accumulator.update_batch(batch, weights=1)
+        return accumulator.update_batch(batch)
+
+    def buffers(kernel):
+        for value in vars(kernel).values():
+            if isinstance(value, np.ndarray):
+                yield value
+            elif hasattr(value, "update_batch"):
+                yield from buffers(value)
+
+    left, right = make(empty_side == "left"), make(empty_side == "right")
+    merged = left + right
+    expected = merged()
+    for array in buffers(merged._accumulators[None]):
+        for source in (*buffers(left._accumulators[None]), *buffers(right._accumulators[None])):
+            assert not np.shares_memory(array, source)
+    for source in (*buffers(left._accumulators[None]), *buffers(right._accumulators[None])):
+        source[...] = 0
+    xr.testing.assert_identical(merged(), expected)

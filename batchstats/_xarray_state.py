@@ -29,6 +29,8 @@ class _Codec:
         self.arrays = {} if arrays is None else arrays
         self.used = set()
         self.copy = copy
+        self._packed = {}  # Keep source references alive so object ids cannot be reused.
+        self._unpacked = {}
 
     def pack(self, value):
         if isinstance(value, np.dtype) and value.kind in "biufcUSmMO":
@@ -40,8 +42,13 @@ class _Codec:
                 return {"tag": "object", "shape": list(array.shape), "items": [self.pack(v) for v in array.flat]}
             if array.dtype.kind not in "biufcUSmM":
                 raise TypeError(f"Unsupported checkpoint array dtype: {array.dtype}")
-            key = f"a{len(self.arrays)}"
-            self.arrays[key] = array.copy() if self.copy else array
+            previous = self._packed.get(id(array))
+            if previous is None:
+                key = f"a{len(self.arrays)}"
+                self.arrays[key] = array.copy() if self.copy else array
+                self._packed[id(array)] = (array, key)
+            else:
+                _, key = previous
             return {"tag": "array", "key": key, "dtype": array.dtype.str, "shape": list(array.shape), "scalar": scalar}
         if value is None or type(value) in (bool, int, str):
             return value
@@ -87,7 +94,12 @@ class _Codec:
             self.used.add(value["key"])
             if type(value["scalar"]) is not bool or (value["scalar"] and array.ndim != 0):
                 raise ValueError("Invalid scalar array.")
-            return array[()] if value["scalar"] else array.copy()
+            if value["scalar"]:
+                return array[()]
+            key = value["key"]
+            if key not in self._unpacked:
+                self._unpacked[key] = array.copy() if self.copy else array
+            return self._unpacked[key]
         if tag == "object":
             shape = _shape(value["shape"])
             if int(np.prod(shape, dtype=object)) != len(value["items"]):
@@ -303,6 +315,10 @@ def _restore_kernel(value, kernel, codec, shape, right_shape=None):
                     raise ValueError(f"Checkpoint kernel parameter {name!r} does not match.")
             setattr(kernel, name, restored)
     _validate_kernel(kernel, shape, right_shape)
+    # Older v1 files stored the parent's and child's counts separately. They
+    # have just been checked for equality; restore the live kernel's alias too.
+    if isinstance(kernel, nanstats.BatchNanMean):
+        kernel.n_samples = kernel.sum.n_samples
     return kernel
 
 
@@ -407,6 +423,10 @@ def to_state(accumulator, copy=True):
 
 
 def from_state(cls, state):
+    return _from_state(cls, state, copy=True)
+
+
+def _from_state(cls, state, *, copy):
     from . import xarray as bx
 
     try:
@@ -422,7 +442,7 @@ def from_state(cls, state):
             raise ValueError("Unknown checkpoint format, version or statistic type.")
         if type(meta["keep_attrs"]) is not bool or meta["kind"] not in (None, "DataArray", "Dataset"):
             raise ValueError("Invalid checkpoint container or attribute policy.")
-        codec = _Codec(arrays)
+        codec = _Codec(arrays, copy=copy)
         params = codec.unpack(meta["params"])
         kwargs = {"rank_dim": meta["rank_dim"]} if issubclass(cls, bx.BatchTopK) else {}
         result = cls(dim=codec.unpack(meta["dim"]), keep_attrs=meta["keep_attrs"], **params, **kwargs)
@@ -520,6 +540,8 @@ def load(cls, path):
                 "metadata": json.loads(str(metadata)),
                 "arrays": {name: archive[name] for name in archive.files if name != "metadata"},
             }
-        return from_state(cls, state)
+        # These arrays belong exclusively to this load operation. Public
+        # from_state still copies arrays supplied by its caller.
+        return _from_state(cls, state, copy=False)
     except (BadZipFile, EOFError, KeyError, TypeError, AttributeError) as exc:
         raise ValueError("Malformed xarray checkpoint file.") from exc

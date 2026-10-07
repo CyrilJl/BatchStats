@@ -74,6 +74,12 @@ returned to the caller are independent copies. Variable and Dataset ``encoding``
 to the reduced result; configure them explicitly when exporting results to
 NetCDF or Zarr.
 
+Retained coordinates are loaded and copied at the first update, independently
+of the source file. Closing, deleting or replacing that file does not change
+the accumulated labels or prevent checkpointing. Dataset variables share a
+single internal snapshot of common coordinates; subsequent updates validate
+the incoming coordinates without taking another snapshot.
+
 Coordinate and batch contracts
 ------------------------------
 
@@ -162,6 +168,7 @@ These classes compute matrices between features, as in the NumPy API.
 Non-reduced dimensions are flattened into features for computation and restored
 in the output. Dimensions and coordinates belonging to the second feature axis
 receive a ``_2`` suffix. Rename conflicting input coordinates first.
+Dimensions without explicit coordinate variables are supported too.
 
 ``update_batch(batch, batch2)`` computes cross-covariance or cross-correlation.
 Both inputs must use the same reduced dimension names, sizes and sample
@@ -225,6 +232,13 @@ in the same directory is fully written and closed before replacing the target;
 a failed serialization/write leaves an existing checkpoint intact. The parent
 directory must already exist. ``load`` rejects incompatible versions, statistic
 types, malformed metadata and inconsistent array shapes/counts.
+
+Shared numeric arrays (such as a composite statistic's sample counts) are
+stored once and referenced by multiple metadata entries. This uses the same
+version 1 format; earlier version 1 checkpoints remain readable. ``load`` owns
+the arrays read from the archive directly, while ``from_state`` makes an
+independent copy of the caller's arrays. Internal sharing does not expose
+mutable accumulator state through returned results.
 
 For an in-memory checkpoint:
 
