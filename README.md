@@ -65,9 +65,9 @@ print(f"Variance shape: {variance.shape}")
 * `BatchCorr`
 * `BatchTopK` / `BatchNanTopK` (exact extreme ranks and linear tail quantiles)
 
-`BatchNanSum` and `BatchNanMean` support merging with `+`. These classes and
-the top-k accumulators support versioned `to_state()` / `from_state()` and
-NPZ checkpoints with `save()` / `load()`, without pickle.
+`BatchNanSum`, `BatchNanMean` and the top-k accumulators can be saved and resumed
+with `save()` / `load()` using NPZ checkpoints. Use `to_state()` / `from_state()`
+to export and restore their state in memory.
 
 ```python
 from batchstats import BatchNanTopK, required_k
