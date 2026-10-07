@@ -1,10 +1,11 @@
 import numpy as np
 
 from ..base import BatchNanStat
+from ..base.state import StateMixin
 from .nan_sum import BatchNanSum
 
 
-class BatchNanMean(BatchNanStat):
+class BatchNanMean(StateMixin, BatchNanStat):
     """
     Class for calculating the mean of batches of data that can contain NaN values.
 
@@ -85,7 +86,18 @@ class BatchNanMean(BatchNanStat):
 
         """
         self.sum.update_batch(batch)
+        self.n_samples = self.sum.n_samples
         return self
+
+    def __add__(self, other):
+        from .._misc import DifferentStatsError
+
+        if type(self) is not type(other):
+            raise DifferentStatsError()
+        result = type(self)(axis=self.axis)
+        result.sum = self.sum + other.sum
+        result.n_samples = result.sum.n_samples
+        return result
 
     def __call__(self):
         """

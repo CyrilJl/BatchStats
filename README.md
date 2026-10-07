@@ -63,6 +63,25 @@ print(f"Variance shape: {variance.shape}")
 * `BatchStd`
 * `BatchCov`
 * `BatchCorr`
+* `BatchTopK` / `BatchNanTopK` (exact extreme ranks and linear tail quantiles)
+
+`BatchNanSum` and `BatchNanMean` support merging with `+`. These classes and
+the top-k accumulators support versioned `to_state()` / `from_state()` and
+NPZ checkpoints with `save()` / `load()`, without pickle.
+
+```python
+from batchstats import BatchNanTopK, required_k
+
+extremes = BatchNanTopK(required_k(0.998, 8784), axis=0)
+for block in data_stream:  # (time, *spatial_shape), same spatial positions
+    extremes.update_batch(block)
+p998 = extremes.quantile(0.998)  # raises if retained capacity is insufficient
+extremes.save("extremes.npz")
+```
+
+Top-k outputs have a leading rank axis and mask unavailable ranks while preserving
+the selected dtype. `BatchTopK` rejects NaNs; `BatchNanTopK` ignores them per cell.
+See [the streaming and checkpoint guide](docs/source/extreme_statistics.rst).
 
 Docs: https://batchstats.readthedocs.io
 

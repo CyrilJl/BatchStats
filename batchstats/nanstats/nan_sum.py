@@ -2,9 +2,10 @@ import numpy as np
 
 from .._misc import NoValidSamplesError
 from ..base import BatchNanStat
+from ..base.state import StateMixin
 
 
-class BatchNanSum(BatchNanStat):
+class BatchNanSum(StateMixin, BatchNanStat):
     """
     Class for calculating the sum of batches of data that can contain NaN values.
 
@@ -84,12 +85,29 @@ class BatchNanSum(BatchNanStat):
             BatchNanSum: Updated BatchNanSum object.
 
         """
-        batch, _ = self._process_batch(batch)
-        if self.sum is None:
-            self.sum = np.nansum(batch, axis=self.axis)
-        else:
-            self.sum += np.nansum(batch, axis=self.axis)
+        batch = np.atleast_2d(np.asarray(batch))
+        batch_sum = np.asarray(np.nansum(batch, axis=self.axis))
+        if self.sum is not None and self.sum.shape != batch_sum.shape:
+            raise ValueError("Non-reduced dimensions must have the same shape.")
+        n_valid = np.asarray(np.count_nonzero(~np.isnan(batch), axis=self.axis))
+        self.sum = batch_sum if self.sum is None else self.sum + batch_sum
+        self._add_valid_count(n_valid)
         return self
+
+    def __add__(self, other):
+        from ..base import BatchStat
+
+        BatchStat.merge_test(self, other, field="sum")
+        result = type(self)(axis=self.axis)
+        if self.sum is None or other.sum is None:
+            source = other if self.sum is None else self
+            if source.sum is not None:
+                result.sum = source.sum.copy()
+                result.n_samples = source.n_samples.copy()
+        else:
+            result.sum = self.sum + other.sum
+            result.n_samples = self.n_samples + other.n_samples
+        return result
 
     def __call__(self):
         """

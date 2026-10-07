@@ -8,7 +8,7 @@ from ._misc import (
     UnequalSamplesNumber,
 )
 from .base import BatchNanStat, BatchStat
-from .nanstats import BatchNanMax, BatchNanMean, BatchNanMin, BatchNanPeakToPeak, BatchNanSum
+from .nanstats import BatchNanMax, BatchNanMean, BatchNanMin, BatchNanPeakToPeak, BatchNanSum, BatchNanTopK
 from .stats import (
     BatchCorr,
     BatchCov,
@@ -18,9 +18,11 @@ from .stats import (
     BatchPeakToPeak,
     BatchStd,
     BatchSum,
+    BatchTopK,
     BatchVar,
     BatchWeightedMean,
     BatchWeightedSum,
+    required_k,
 )
 
 __all__ = [
@@ -35,10 +37,12 @@ __all__ = [
     "BatchNanPeakToPeak",
     "BatchNanStat",
     "BatchNanSum",
+    "BatchNanTopK",
     "BatchPeakToPeak",
     "BatchStat",
     "BatchStd",
     "BatchSum",
+    "BatchTopK",
     "BatchVar",
     "BatchWeightedMean",
     "BatchWeightedSum",
@@ -47,6 +51,7 @@ __all__ = [
     "DifferentStatsError",
     "NoValidSamplesError",
     "UnequalSamplesNumber",
+    "required_k",
 ]
 
 __version__ = version("batchstats")

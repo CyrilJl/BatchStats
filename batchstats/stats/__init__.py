@@ -6,6 +6,7 @@ from .min import BatchMin
 from .peak_to_peak import BatchPeakToPeak
 from .std import BatchStd
 from .sum import BatchSum
+from .topk import BatchTopK, required_k
 from .var import BatchVar
 from .weighted_mean import BatchWeightedMean
 from .weighted_sum import BatchWeightedSum
@@ -19,7 +20,9 @@ __all__ = [
     "BatchPeakToPeak",
     "BatchStd",
     "BatchSum",
+    "BatchTopK",
     "BatchVar",
     "BatchWeightedMean",
     "BatchWeightedSum",
+    "required_k",
 ]

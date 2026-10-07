@@ -10,6 +10,7 @@ This page provides a reference for the classes available in the ``batchstats`` l
 
    core_classes
    nan_handling_classes
+   extreme_statistics
 
 Exceptions
 ----------
