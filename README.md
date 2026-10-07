@@ -106,7 +106,17 @@ All the statistics listed above have labelled counterparts. Reduce one or more
 named dimensions with `dim="time"` or `dim=("time", "level")`; `dim=None`
 reduces all dimensions. Dataset variables are accumulated independently. The
 NumPy API and its dependencies remain unchanged; importing `batchstats` does not
-import xarray. See [the xarray guide](docs/source/xarray_support.rst) for coordinate
+import xarray. All labelled accumulators support checkpoints, including their
+retained coordinates and attributes:
+
+```python
+mean.save("mean.npz")
+mean = BatchNanMean.load("mean.npz")
+mean.update_batch(next_batch)
+```
+
+Use `keep_attrs=True` to keep variable and Dataset attributes from the first
+batch. See [the xarray guide](docs/source/xarray_support.rst) for coordinate
 validation, weighted statistics, covariance, top-k and streaming limits.
 
 ## Development

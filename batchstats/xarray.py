@@ -202,6 +202,32 @@ class _Reduction:
         """Return the statistic as a DataArray or Dataset."""
         return self._result()
 
+    def to_state(self):
+        """Export an independent, versioned checkpoint (JSON metadata + arrays)."""
+        from ._xarray_state import to_state
+
+        return to_state(self, copy=True)
+
+    @classmethod
+    def from_state(cls, state):
+        """Restore and validate a labelled checkpoint, copying its arrays."""
+        from ._xarray_state import from_state
+
+        return from_state(cls, state)
+
+    def save(self, path):
+        """Atomically save an NPZ checkpoint to the exact path, without pickle."""
+        from ._xarray_state import save
+
+        save(self, path)
+
+    @classmethod
+    def load(cls, path):
+        """Load an NPZ checkpoint and resume with update_batch or merging."""
+        from ._xarray_state import load
+
+        return load(cls, path)
+
     @property
     def n_samples(self):
         """Labelled counts (per variable for Datasets); None for weighted stats."""

@@ -51,5 +51,5 @@ jobs:
       - name: Run core tests without xarray
         if: ${{ !matrix.xarray }}
         run: |
-          python -m coverage run --omit=batchstats/xarray.py -m pytest
+          python -m coverage run --omit=batchstats/xarray.py,batchstats/_xarray_state.py -m pytest
           python -m coverage report

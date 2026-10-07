@@ -65,6 +65,15 @@ Attributes are not recomputed; for example, variance units require updating by
 the caller. Names and non-reduced coordinates are preserved independently of
 ``keep_attrs``.
 
+Coordinate attributes and coordinate ``encoding`` are copied with the retained
+coordinates, even when ``keep_attrs=False``. The first batch remains the source
+of these metadata: later attributes/encodings are not compared or merged.
+Coordinate validation compares dimensions and values, not attributes. Metadata
+returned to the caller are independent copies. Variable and Dataset ``encoding``
+(source filenames, compression, original chunk sizes, etc.) are not propagated
+to the reduced result; configure them explicitly when exporting results to
+NetCDF or Zarr.
+
 Coordinate and batch contracts
 ------------------------------
 
@@ -183,6 +192,69 @@ large or lazy datasets into suitably sized batches before calling
 and does not add Dask as a dependency. Matrix statistics require quadratic
 feature storage; top-k storage scales with ``k`` times the remaining shape.
 
-The labelled adapters currently support in-memory merging, but do not expose
-the NumPy accumulators' ``save/load`` or ``to_state/from_state`` checkpoint API.
-The existing NumPy checkpoint API remains available unchanged.
+Checkpoints and resuming
+-------------------------
+
+All labelled statistics support ``save/load`` and ``to_state/from_state``.
+Checkpoints contain the accumulator state, not just the current statistic, so
+processing can continue without replaying earlier batches:
+
+.. code-block:: python
+
+   from batchstats.xarray import BatchNanMean
+
+   mean = BatchNanMean(dim="time", keep_attrs=True)
+   mean.update_batch(data.isel(time=slice(0, 2)))
+   mean.save("mean.npz")
+
+   resumed = BatchNanMean.load("mean.npz")
+   resumed.update_batch(data.isel(time=slice(2, None)))
+   xr.testing.assert_identical(resumed(), data.mean("time", keep_attrs=True))
+
+Load with the same class used for saving. Parameters (``dim``, ``ddof``, ``k``,
+``largest``, ``rank_dim``, ``keep_attrs``), counts, intermediate numeric states,
+container type, variable names, retained coordinates and metadata are restored.
+Paired covariance/correlation mode is restored too. Loaded accumulators support
+both ``update_batch`` and ``+`` with the usual coordinate checks. Uninitialized,
+empty and all-NaN states can also be saved and resumed.
+
+``save`` takes a filesystem path and writes to that exact name, without appending
+an extension. The file is an NPZ archive containing versioned JSON metadata and
+NumPy arrays, with no pickle and no additional I/O dependency. A temporary file
+in the same directory is fully written and closed before replacing the target;
+a failed serialization/write leaves an existing checkpoint intact. The parent
+directory must already exist. ``load`` rejects incompatible versions, statistic
+types, malformed metadata and inconsistent array shapes/counts.
+
+For an in-memory checkpoint:
+
+.. code-block:: python
+
+   state = mean.to_state()
+   restored = BatchNanMean.from_state(state)
+
+``state["metadata"]`` is JSON-serializable and ``state["arrays"]`` holds the
+NumPy arrays. These arrays do not share writable storage with the original
+accumulator or a restored instance. The labelled checkpoint format is distinct
+from the existing NumPy checkpoint format; neither loader accepts the other's
+files. The NumPy checkpoint API is unchanged.
+
+Metadata serialization supports nested dictionaries, lists, tuples, strings,
+bytes, booleans, integers, floats (including NaN/infinity), complex values,
+NumPy scalars/arrays/dtypes, standard Python dates/datetimes/timedeltas and
+pandas timestamps/timedeltas/missing-value sentinels. Object arrays containing
+these supported values are encoded element by element in JSON, never pickled.
+Numeric, string, datetime64 and timedelta64 coordinates are supported, as are
+ordinary pandas-based coordinate indexes and MultiIndexes (including their
+level dtypes, unused levels and missing codes). Coordinate attributes and
+encodings are saved along with the coordinates.
+
+Custom Python objects, structured NumPy dtypes, CFTime values, custom xarray
+indexes, categorical/period/interval indexes and timezone-aware coordinate
+indexes are not supported by this checkpoint version. Unsupported metadata raise
+``TypeError`` during saving without overwriting an existing file. Convert such
+metadata explicitly before accumulating, or use ``keep_attrs=False`` to omit
+unsupported variable/Dataset attributes. That option does not remove coordinate
+metadata. Index implementation details such as a DatetimeIndex's inferred
+frequency are not part of the checkpoint contract; coordinate values, dimensions
+and indexing relationships are preserved.
