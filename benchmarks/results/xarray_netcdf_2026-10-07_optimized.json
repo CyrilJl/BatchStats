@@ -1,0 +1,626 @@
+{
+  "environment": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "python": "3.14.6 (main, Jun 11 2026, 04:05:02) [MSC v.1944 64 bit (AMD64)]",
+    "logical_cpus": 16,
+    "physical_cpus": 8,
+    "total_ram_bytes": 68633198592,
+    "versions": {
+      "batchstats": "0.6",
+      "numpy": "2.5.1",
+      "xarray": "2026.9.0",
+      "dask": "2026.8.0",
+      "pandas": "3.0.6",
+      "netCDF4": "1.7.4",
+      "psutil": "7.2.2"
+    },
+    "batchstats_source": "C:\\Users\\cjoly\\Python\\BatchStats\\batchstats\\xarray.py",
+    "batchstats_xarray_sha256": "4cd2103117585976232bba9e82eb6f7b91a4e70f269f8d281f44b5314c32df65",
+    "netcdf_library": "4.9.3",
+    "hdf5_library": "1.14.6",
+    "dask_workers": null,
+    "files": 10,
+    "shape_per_file": {
+      "time": 32,
+      "y": 1024,
+      "x": 1024
+    },
+    "disk_bytes": 1426231540,
+    "chunk_time": 4,
+    "repeat": 3,
+    "cache": "warm OS cache; one untimed run per method; no cache eviction"
+  },
+  "runs": [
+    {
+      "repeat": 1,
+      "method": "mfdataset-default",
+      "seconds": 2.738634500070475,
+      "baseline_rss_bytes": 107270144,
+      "peak_rss_bytes": 1075159040,
+      "peak_minus_baseline_bytes": 967888896,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 1,
+      "method": "mfdataset-chunked",
+      "seconds": 3.036078399978578,
+      "baseline_rss_bytes": 107077632,
+      "peak_rss_bytes": 380583936,
+      "peak_minus_baseline_bytes": 273506304,
+      "max_abs_error": 1.2071350774522926e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 1,
+      "method": "batchstats-file",
+      "seconds": 3.0763199001085013,
+      "baseline_rss_bytes": 107057152,
+      "peak_rss_bytes": 328105984,
+      "peak_minus_baseline_bytes": 221048832,
+      "max_abs_error": 1.3744793481151873e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 1,
+      "method": "mfdataset-single",
+      "seconds": 3.7044712000060827,
+      "baseline_rss_bytes": 106938368,
+      "peak_rss_bytes": 478228480,
+      "peak_minus_baseline_bytes": 371290112,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 1,
+      "method": "batchstats-slice",
+      "seconds": 4.425066399970092,
+      "baseline_rss_bytes": 106917888,
+      "peak_rss_bytes": 181325824,
+      "peak_minus_baseline_bytes": 74407936,
+      "max_abs_error": 3.2820279083356496e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 2,
+      "method": "mfdataset-single",
+      "seconds": 3.6738361000316218,
+      "baseline_rss_bytes": 107503616,
+      "peak_rss_bytes": 486518784,
+      "peak_minus_baseline_bytes": 379015168,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 2,
+      "method": "mfdataset-default",
+      "seconds": 2.672545999987051,
+      "baseline_rss_bytes": 107028480,
+      "peak_rss_bytes": 1045409792,
+      "peak_minus_baseline_bytes": 938381312,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 2,
+      "method": "batchstats-slice",
+      "seconds": 4.4417949001071975,
+      "baseline_rss_bytes": 107331584,
+      "peak_rss_bytes": 181628928,
+      "peak_minus_baseline_bytes": 74297344,
+      "max_abs_error": 3.2820279083356496e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 2,
+      "method": "batchstats-file",
+      "seconds": 3.0773076999466866,
+      "baseline_rss_bytes": 107048960,
+      "peak_rss_bytes": 328212480,
+      "peak_minus_baseline_bytes": 221163520,
+      "max_abs_error": 1.3744793481151873e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 2,
+      "method": "mfdataset-chunked",
+      "seconds": 2.9353850999614224,
+      "baseline_rss_bytes": 107364352,
+      "peak_rss_bytes": 385089536,
+      "peak_minus_baseline_bytes": 277725184,
+      "max_abs_error": 1.2071350774522926e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 3,
+      "method": "mfdataset-single",
+      "seconds": 3.597901599947363,
+      "baseline_rss_bytes": 107175936,
+      "peak_rss_bytes": 487002112,
+      "peak_minus_baseline_bytes": 379826176,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 3,
+      "method": "batchstats-slice",
+      "seconds": 4.412925699958578,
+      "baseline_rss_bytes": 107499520,
+      "peak_rss_bytes": 181936128,
+      "peak_minus_baseline_bytes": 74436608,
+      "max_abs_error": 3.2820279083356496e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 3,
+      "method": "mfdataset-default",
+      "seconds": 2.811713800067082,
+      "baseline_rss_bytes": 107237376,
+      "peak_rss_bytes": 1034780672,
+      "peak_minus_baseline_bytes": 927543296,
+      "max_abs_error": 1.4139650750255583e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    },
+    {
+      "repeat": 3,
+      "method": "batchstats-file",
+      "seconds": 3.10539670009166,
+      "baseline_rss_bytes": 107216896,
+      "peak_rss_bytes": 328306688,
+      "peak_minus_baseline_bytes": 221089792,
+      "max_abs_error": 1.3744793481151873e-07,
+      "output_dtype": "float64",
+      "chunks": null
+    },
+    {
+      "repeat": 3,
+      "method": "mfdataset-chunked",
+      "seconds": 3.0191743000177667,
+      "baseline_rss_bytes": 107192320,
+      "peak_rss_bytes": 401063936,
+      "peak_minus_baseline_bytes": 293871616,
+      "max_abs_error": 1.2071350774522926e-07,
+      "output_dtype": "float32",
+      "chunks": [
+        [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ]
+    }
+  ],
+  "summary": [
+    {
+      "method": "batchstats-file",
+      "median_seconds": 3.0773076999466866,
+      "min_seconds": 3.0763199001085013,
+      "max_seconds": 3.10539670009166,
+      "median_peak_mib": 313.0078125,
+      "max_peak_mib": 313.09765625
+    },
+    {
+      "method": "batchstats-slice",
+      "median_seconds": 4.425066399970092,
+      "min_seconds": 4.412925699958578,
+      "max_seconds": 4.4417949001071975,
+      "median_peak_mib": 173.21484375,
+      "max_peak_mib": 173.5078125
+    },
+    {
+      "method": "mfdataset-single",
+      "median_seconds": 3.6738361000316218,
+      "min_seconds": 3.597901599947363,
+      "max_seconds": 3.7044712000060827,
+      "median_peak_mib": 463.98046875,
+      "max_peak_mib": 464.44140625
+    },
+    {
+      "method": "mfdataset-default",
+      "median_seconds": 2.738634500070475,
+      "min_seconds": 2.672545999987051,
+      "max_seconds": 2.811713800067082,
+      "median_peak_mib": 996.98046875,
+      "max_peak_mib": 1025.3515625
+    },
+    {
+      "method": "mfdataset-chunked",
+      "median_seconds": 3.0191743000177667,
+      "min_seconds": 2.9353850999614224,
+      "max_seconds": 3.036078399978578,
+      "median_peak_mib": 367.25,
+      "max_peak_mib": 382.484375
+    }
+  ],
+  "baseline_revision": "0f30f58",
+  "label": "after xarray snapshot, merge and checkpoint fixes",
+  "implementation_revision": "b8ad0c056125456b0bdd61cd2f20c0e438654d7e"
+}

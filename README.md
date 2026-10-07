@@ -85,12 +85,46 @@ See [the streaming and checkpoint guide](docs/source/extreme_statistics.rst).
 
 Docs: https://batchstats.readthedocs.io
 
+## Optional xarray support
+
+```console
+pip install "batchstats[xarray]"
+```
+
+Use the classes in `batchstats.xarray` with a `DataArray` or a `Dataset`:
+
+```python
+from batchstats.xarray import BatchNanMean
+
+mean = BatchNanMean(dim="time")
+for batch in labelled_batches:
+    mean.update_batch(batch)
+result = mean()  # DataArray or Dataset, with the remaining dimensions/coordinates
+```
+
+All the statistics listed above have labelled counterparts. Reduce one or more
+named dimensions with `dim="time"` or `dim=("time", "level")`; `dim=None`
+reduces all dimensions. Dataset variables are accumulated independently. The
+NumPy API and its dependencies remain unchanged; importing `batchstats` does not
+import xarray. All labelled accumulators support checkpoints, including their
+retained coordinates and attributes:
+
+```python
+mean.save("mean.npz")
+mean = BatchNanMean.load("mean.npz")
+mean.update_batch(next_batch)
+```
+
+Use `keep_attrs=True` to keep variable and Dataset attributes from the first
+batch. See [the xarray guide](docs/source/xarray_support.rst) for coordinate
+validation, weighted statistics, covariance, top-k and streaming limits.
+
 ## Development
 
 Install the development dependencies and run the local quality gates:
 
 ```console
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,xarray]"
 python -m ruff check .
 python -m ruff format --check .
 python -m pytest --cov=batchstats
