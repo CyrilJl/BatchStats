@@ -12,12 +12,16 @@ permissions:
 
 jobs:
   test:
-    name: Python ${{ matrix.python-version }}
+    name: Python ${{ matrix.python-version }} (xarray=${{ matrix.xarray }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        xarray: [false, true]
+        include:
+          - python-version: "3.10"
+            xarray: minimum
 
     steps:
       - name: Check out repository
@@ -32,5 +36,20 @@ jobs:
       - name: Install package and test dependencies
         run: python -m pip install ".[test]"
 
+      - name: Install optional xarray support
+        if: matrix.xarray
+        run: python -m pip install ".[xarray]" "dask[array]"
+
+      - name: Install minimum xarray version
+        if: matrix.xarray == 'minimum'
+        run: python -m pip install "xarray==2023.1.0" "numpy<2" "pandas<2"
+
       - name: Run tests with coverage
+        if: matrix.xarray
         run: python -m pytest --cov=batchstats
+
+      - name: Run core tests without xarray
+        if: ${{ !matrix.xarray }}
+        run: |
+          python -m coverage run --omit=batchstats/xarray.py -m pytest
+          python -m coverage report

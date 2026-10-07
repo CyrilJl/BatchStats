@@ -63,3 +63,4 @@ Docs: https://batchstats.readthedocs.io
 
    api
    incremental_computing
+   xarray_support
