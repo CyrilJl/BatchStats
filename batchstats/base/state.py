@@ -10,6 +10,10 @@ class StateMixin:
 
     def to_state(self):
         """Return independent arrays plus JSON-compatible metadata."""
+        return self._state(copy=True)
+
+    def _state(self, copy):
+        """Build metadata; synchronous saving can borrow the arrays."""
         from ..nanstats.nan_mean import BatchNanMean
         from ..stats.topk import BatchTopK
 
@@ -20,7 +24,9 @@ class StateMixin:
         params = {"axis": [int(ax) for ax in axis] if isinstance(axis, tuple) else None if axis is None else int(axis)}
         if isinstance(self, BatchTopK):
             params.update(k=self.k, largest=self.largest)
-        arrays = {} if value is None else {field: value.copy(), "n_samples": target.n_samples.copy()}
+        arrays = {} if value is None else {field: value, "n_samples": target.n_samples}
+        if copy:
+            arrays = {key: a.copy() for key, a in arrays.items()}
         metadata = {
             "version": 1,
             "type": type(self).__name__,
@@ -93,7 +99,7 @@ class StateMixin:
 
     def save(self, path):
         """Write metadata as JSON inside an NPZ archive (not atomic)."""
-        state = self.to_state()
+        state = self._state(copy=False)
         np.savez(path, metadata=np.asarray(json.dumps(state["metadata"])), **state["arrays"])
 
     @classmethod

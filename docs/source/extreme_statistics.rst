@@ -75,13 +75,20 @@ uninitialized. The type, axis parameter and remaining shape must match;
 top-k also requires equal capacity, direction and input dimensionality.
 Axis parameters are compared literally, as in the existing package: ``0`` and
 ``-3`` or differently ordered tuples are not interchangeable in a merge.
-Top-k uses local partition before combining at most 2k retained values, then
-sorts only the retained tail. Persistent memory is O(k times positions), plus
-counts. Temporaries include the transposed/reshaped batch when a copy is needed,
-its validity mask, a partition working copy, and the retained merge buffers.
+Top-k partitions contiguous rank vectors before combining at most 2k retained
+values, then sorts the retained tail. Fully populated local tails do not need
+an intermediate sort. For k=1, a min/max reduction avoids the partition working
+copy. Persistent memory is O(k times positions), plus counts. Temporaries include
+the transposed/reshaped batch when a copy is needed, its NaN mask for floating
+inputs, a partition working copy, and the retained merge buffers. The public
+state remains contiguous for efficient reads and checkpoint writes. Reading
+``rank(r)`` copies only that rank, using O(positions) additional memory.
 
 ``BatchNanSum`` and ``BatchNanMean`` can also be merged; means combine sums and
 valid counts rather than averaging means. Empty positions still return NaN.
+Updates reuse one NaN mask for the sum and count reductions without making a
+numeric copy of the batch. Complete batches use ordinary sums and derive counts
+from their shape; integer and boolean inputs need no NaN mask.
 Sum reductions follow NumPy's default accumulation dtype (small integers are
 promoted); updates and merges use NumPy result-type promotion. Integer overflow
 is possible, and mixing large integers with floating dtypes can lose precision.
@@ -109,6 +116,9 @@ store ``state['metadata']`` in a separate JSON file and ``state['arrays']`` in
 NPZ. File paths follow ``np.savez`` semantics (the .npz extension is appended
 when absent). Atomic writes, integrity checks and overlap detection remain the
 consumer's responsibility.
+Saving writes the live arrays synchronously without first copying the whole
+state; do not update an accumulator concurrently with saving it. ``to_state()``
+and ``from_state()`` still return independent arrays.
 
 .. code-block:: python
 
@@ -122,45 +132,76 @@ Benchmarks
 ----------
 
 Run ``python benchmarks/extremes.py`` to compare incremental selection, complete
-sort, complete partition, fusion and saving in isolated processes. It emits JSON
+sort, complete partition, fusion, saving and single-rank reads in isolated processes. It emits JSON
 with elapsed time, process peak RSS, persistent state bytes and tracked peak
 allocations (including NumPy temporaries). Use ``--samples``, ``--positions``,
 ``--batch`` and ``--k`` to vary sizes; it covers float32/64 and missing data.
-Peak RSS includes input generation and interpreter overhead; tracked allocations
-start immediately before the measured operation. Results depend on hardware and
+``--repeat`` controls repetitions (three by default), and ``--operations`` selects
+operations. Timings are medians after warm-up, with allocation tracking disabled;
+peak allocations are measured in a separate run. Peak RSS includes input generation,
+warm-up and interpreter overhead. Results depend on hardware and
 input sizes. Large cases stay outside CI.
 Nineteen float32 values across 5.2 million cells occupy about 395 MB before counts
 and temporaries; spatial tiling remains necessary.
 
-An illustrative Windows / Python 3.14 / NumPy 2.5.1 run on 7 October 2026 used
-8760 samples, 256 positions, 168-sample batches and k=19 (complete data):
+Performance comparison on Windows / Python 3.14.6 / NumPy 2.5.1, 7 October 2026,
+against commit ``4760457``, using the same benchmark harness for both versions:
 
-.. list-table:: Measured time and peak tracked allocations
+.. code-block:: console
+
+   python benchmarks/extremes.py --positions 1024 --repeat 5
+   python benchmarks/reductions.py
+   python benchmarks/reductions.py --axis 1
+   python benchmarks/extremes.py --samples 128 --positions 65536 --k 64 --operations save rank
+
+The top-k workload has 8760 samples, 1024 positions, 168-sample batches and k=19.
+The reductions workload has 4096 samples, 1024 positions and 256-sample batches;
+the table uses axis=0. Both use five timing repetitions. Missing data replaces
+every seventh sample at every third position with NaN. MB denotes decimal MB.
+
+.. list-table:: Time and peak tracked allocations, before to after
    :header-rows: 1
 
    * - Operation
-     - float32 time / peak
-     - float64 time / peak
-   * - Incremental
-     - 0.078 s / 1.32 MB
-     - 0.064 s / 1.53 MB
-   * - Complete sort
-     - 0.035 s / 17.98 MB
-     - 0.055 s / 35.95 MB
-   * - Complete partition
-     - 0.024 s / 11.21 MB
-     - 0.042 s / 20.18 MB
-   * - Merge
-     - 0.00030 s / 0.129 MB
-     - 0.00034 s / 0.208 MB
-   * - Save
-     - 0.0038 s / 0.189 MB
-     - 0.0038 s / 0.227 MB
+     - Dtype / data
+     - Time (ms)
+     - Peak (MB)
+   * - Incremental top-k
+     - float32 / complete
+     - 141.0 to 69.1
+     - 1.036 to 0.862
+   * - Incremental top-k
+     - float64 / missing
+     - 158.1 to 126.7
+     - 1.880 to 1.878
+   * - Merge top-k
+     - float64 / complete
+     - 0.762 to 0.396
+     - 0.821 to 0.470
+   * - NaN sum
+     - float32 / complete
+     - 11.21 to 1.80
+     - 1.329 to 0.292
+   * - NaN sum
+     - float32 / missing
+     - 13.46 to 9.17
+     - 1.329 to 0.354
+   * - NaN sum
+     - float64 / missing
+     - 18.89 to 11.05
+     - 2.386 to 0.362
+   * - NaN mean
+     - float64 / missing
+     - 20.55 to 11.53
+     - 2.386 to 0.363
 
-Persistent states including counts were 21,504 and 40,960 bytes respectively.
-With missing values every seventh sample at every third position, incremental
-times were 0.058 / 0.064 s with essentially identical allocation peaks. These
-small cases demonstrate the memory/time tradeoff, not a general speed advantage.
+Persistent state sizes are unchanged. Incremental top-k with missing data is
+faster, but its peak temporary memory is nearly unchanged in this workload.
+For the separate large-state case (k=64, 65536 positions, float64, complete data,
+three repetitions), saving improved from 31.28 to 23.48 ms and from 50.99 to
+16.91 MB of tracked allocations. Reading one rank dropped from 37.75 to 0.59 MB;
+it no longer allocates all k ranks and their masks. These are local measurements,
+not performance guarantees for other machines, layouts or data distributions.
 
 API
 ---

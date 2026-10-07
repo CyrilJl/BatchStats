@@ -128,3 +128,59 @@ def test_integer_precision_and_empty_merge():
     for result in [stat + BatchTopK(3), BatchTopK(3) + stat]:
         result.values[0] = 0
         assert stat.values[0, 0] == 2**63 - 1
+
+
+@pytest.mark.parametrize("largest", [True, False])
+@pytest.mark.parametrize("k", [1, 3, 20])
+@pytest.mark.parametrize("dtype", [np.bool_, np.uint8, np.int64, np.float32, np.float64])
+def test_readonly_batches_and_independent_ranks(largest, k, dtype):
+    data = np.arange(40).reshape(10, 4).astype(dtype)[::-2, ::-1]
+    data.flags.writeable = False
+    stat = BatchTopK(k, largest=largest).update_batch(data[:1]).update_batch(data[1:])
+    expected = np.sort(data, axis=0)
+    if largest:
+        expected = expected[::-1]
+    np.testing.assert_array_equal(stat()[: min(k, len(data))], expected[:k])
+    rank = stat.rank(1)
+    assert not np.shares_memory(rank.data, stat.values)
+    rank.data[...] = 0
+    np.testing.assert_array_equal(stat.rank(1), expected[0])
+    # Only the retained tail may remain alive through array views.
+    owner = stat.values
+    while isinstance(owner.base, np.ndarray):
+        owner = owner.base
+    assert owner.nbytes == stat.values.nbytes
+
+
+@pytest.mark.parametrize("largest", [True, False])
+@pytest.mark.parametrize("dtype", [np.int16, np.float64])
+def test_missing_ranks_after_dtype_promotion_and_restore(largest, dtype):
+    first = np.array([[100, 10]], dtype=np.uint8)
+    second = np.array([[-500, 500], [-300, 300]], dtype=dtype)
+    original = BatchTopK(4, largest=largest).update_batch(first)
+    state = original.to_state()
+    # Missing ranks are deliberately not canonical sentinels in checkpoints.
+    state["arrays"]["values"][1:] = 123
+    restored = BatchTopK.from_state(state)
+    other = BatchTopK(4, largest=largest).update_batch(second)
+    merged = restored + other
+    restored.update_batch(second)
+    expected = BatchTopK(4, largest=largest).update_batch(np.concatenate((first, second)))
+    for stat in (merged, restored):
+        np.testing.assert_array_equal(stat().compressed(), expected().compressed())
+        np.testing.assert_array_equal(stat().mask, expected().mask)
+        np.testing.assert_array_equal(stat.n_samples, [3, 3])
+    np.testing.assert_array_equal(original.rank(1), first[0])
+
+
+@pytest.mark.parametrize("largest", [True, False])
+def test_single_rank_with_nans_infinities_and_empty_batches(largest):
+    data = np.array([[np.nan, np.inf, -np.inf], [np.nan, 2, 3]], dtype=np.float32)
+    stat = BatchNanTopK(1, largest=largest).update_batch(data[:0])
+    assert stat.rank(1).mask.all()
+    stat.update_batch(data)
+    np.testing.assert_array_equal(stat.rank(1).mask, [True, False, False])
+    expected = [np.inf, 3] if largest else [2, -np.inf]
+    np.testing.assert_array_equal(stat.rank(1)[1:], expected)
+    with pytest.raises(NoValidSamplesError):
+        BatchTopK(1).rank(1)

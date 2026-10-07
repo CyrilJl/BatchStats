@@ -56,31 +56,40 @@ def worker(connection, config, operation, dtype, missing):
         if missing:
             data[::7, ::3] = np.nan
         factory = lambda: BatchNanTopK(config.k)  # noqa: E731
-        if operation in ("merge", "save"):
+        if operation in ("merge", "save", "rank"):
             state = factory().update_batch(data[: config.samples // 2])
             other = factory().update_batch(data[config.samples // 2 :])
-        tracemalloc.start()
-        start = time.perf_counter()
-        if operation == "incremental":
-            state = factory()
-            for offset in range(0, config.samples, config.batch):
-                state.update_batch(data[offset : offset + config.batch])
-            result = state.values
-        elif operation == "sort":
-            work = np.where(np.isnan(data), -np.inf, data)
-            result = np.sort(work, axis=0)[-config.k :]
-        elif operation == "partition":
-            work = np.where(np.isnan(data), -np.inf, data)
-            work.partition(config.samples - config.k, axis=0)
-            result = np.sort(work[-config.k :], axis=0)
-        elif operation == "merge":
-            state = state + other
-            result = state.values
-        else:
+
+        def calculate():
+            if operation == "incremental":
+                current = factory()
+                for offset in range(0, config.samples, config.batch):
+                    current.update_batch(data[offset : offset + config.batch])
+                return current.values, current.n_samples.nbytes
+            if operation == "sort":
+                work = np.where(np.isnan(data), -np.inf, data)
+                return np.sort(work, axis=0)[-config.k :], 0
+            if operation == "partition":
+                work = np.where(np.isnan(data), -np.inf, data)
+                work.partition(config.samples - config.k, axis=0)
+                return np.sort(work[-config.k :], axis=0), 0
+            if operation == "merge":
+                current = state + other
+                return current.values, current.n_samples.nbytes
+            if operation == "rank":
+                return state.rank(1), 0
             with tempfile.TemporaryDirectory() as directory:
                 state.save(os.path.join(directory, "state.npz"))
-            result = state.values
-        elapsed = time.perf_counter() - start
+            return state.values, state.n_samples.nbytes
+
+        calculate()  # warm up separately from timing and allocation tracking
+        times = []
+        for _ in range(config.repeat):
+            start = time.perf_counter()
+            calculate()
+            times.append(time.perf_counter() - start)
+        tracemalloc.start()
+        result, count_bytes = calculate()
         _, tracked_peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
         connection.send(
@@ -88,11 +97,12 @@ def worker(connection, config, operation, dtype, missing):
                 "operation": operation,
                 "dtype": dtype,
                 "missing": missing,
-                "seconds": elapsed,
+                "seconds": float(np.median(times)),
                 "peak_rss_bytes": peak_rss(),
                 "tracked_peak_bytes": tracked_peak,
-                "state_bytes": result.nbytes
-                + (state.n_samples.nbytes if operation in ("incremental", "merge", "save") else 0),
+                "state_bytes": (
+                    state.values.nbytes + state.n_samples.nbytes if operation == "rank" else result.nbytes + count_bytes
+                ),
             }
         )
     except Exception as exc:
@@ -103,15 +113,21 @@ def worker(connection, config, operation, dtype, missing):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name, default in [("samples", 8760), ("positions", 256), ("batch", 168), ("k", 19)]:
+    for name, default in [("samples", 8760), ("positions", 256), ("batch", 168), ("k", 19), ("repeat", 3)]:
         parser.add_argument(f"--{name}", type=int, default=default)
+    parser.add_argument(
+        "--operations",
+        nargs="+",
+        choices=("incremental", "sort", "partition", "merge", "save", "rank"),
+        default=["incremental", "sort", "partition", "merge", "save", "rank"],
+    )
     config = parser.parse_args()
-    if min(config.samples, config.positions, config.batch, config.k) < 1 or config.k > config.samples:
+    if min(config.samples, config.positions, config.batch, config.k, config.repeat) < 1 or config.k > config.samples:
         parser.error("positive sizes and k <= samples are required")
     context = mp.get_context("spawn")
     for dtype in ["float32", "float64"]:
         for missing in [False, True]:
-            for operation in ["incremental", "sort", "partition", "merge", "save"]:
+            for operation in config.operations:
                 reader, writer = context.Pipe(duplex=False)
                 process = context.Process(target=worker, args=(writer, config, operation, dtype, missing))
                 process.start()

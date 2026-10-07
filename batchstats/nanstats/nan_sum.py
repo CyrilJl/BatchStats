@@ -86,10 +86,19 @@ class BatchNanSum(StateMixin, BatchNanStat):
 
         """
         batch = np.atleast_2d(np.asarray(batch))
-        batch_sum = np.asarray(np.nansum(batch, axis=self.axis))
+        invalid = np.isnan(batch) if batch.dtype.kind not in "biu" else None
+        if invalid is not None and invalid.any():
+            # Reuse the mask for both reductions without a batch-sized numeric
+            # copy (np.nansum replaces NaNs in a temporary array).
+            np.logical_not(invalid, out=invalid)
+            batch_sum = np.asarray(np.sum(batch, axis=self.axis, where=invalid))
+            n_valid = np.asarray(np.count_nonzero(invalid, axis=self.axis))
+        else:
+            batch_sum = np.asarray(np.sum(batch, axis=self.axis))
+            n = batch.size // batch_sum.size if batch_sum.size else 0
+            n_valid = np.full(batch_sum.shape, n, dtype=np.int64)
         if self.sum is not None and self.sum.shape != batch_sum.shape:
             raise ValueError("Non-reduced dimensions must have the same shape.")
-        n_valid = np.asarray(np.count_nonzero(~np.isnan(batch), axis=self.axis))
         self.sum = batch_sum if self.sum is None else self.sum + batch_sum
         self._add_valid_count(n_valid)
         return self

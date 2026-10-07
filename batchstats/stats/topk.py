@@ -80,27 +80,56 @@ class BatchTopK(StateMixin):
         n = int(np.prod([batch.shape[ax] for ax in axes], dtype=np.int64))
         return np.transpose(batch, axes + remaining).reshape((n, *shape))
 
-    def _select(self, values, valid):
-        dtype = values.dtype
+    def _fill_value(self, dtype):
         if dtype.kind == "f":
-            fill = -np.inf if self.largest else np.inf
-        elif dtype.kind == "b":
-            fill = not self.largest
-        else:
-            info = np.iinfo(dtype)
-            fill = info.min if self.largest else info.max
-        work = np.where(valid, values, fill)
-        n = work.shape[0]
+            return -np.inf if self.largest else np.inf
+        if dtype.kind == "b":
+            return not self.largest
+        info = np.iinfo(dtype)
+        return info.min if self.largest else info.max
+
+    def _select_work(self, work, sort=True):
+        """Consume an owned buffer with contiguous ranks on its last axis."""
+        n = work.shape[-1]
         if n > self.k:
             cut = n - self.k if self.largest else self.k - 1
-            work.partition(cut, axis=0)
-            work = work[-self.k :] if self.largest else work[: self.k]
-        work = np.sort(work, axis=0)
-        if self.largest:
-            work = work[::-1]
-        result = np.full((self.k, *work.shape[1:]), fill, dtype=dtype)
-        result[: min(n, self.k)] = work
-        return result
+            work.partition(cut, axis=-1)
+            tail = work[..., -self.k :] if self.largest else work[..., : self.k]
+            # Detach the small tail: a view would keep the full batch alive.
+            work = tail.copy()
+        elif n < self.k:
+            padded = np.full((*work.shape[:-1], self.k), self._fill_value(work.dtype), dtype=work.dtype)
+            padded[..., :n] = work
+            work = padded
+        if sort:
+            work.sort(axis=-1)
+            if self.largest:
+                work = work[..., ::-1]
+        return np.moveaxis(work, -1, 0)
+
+    def _select(self, values, invalid=None, sort=True):
+        if self.k == 1:
+            reduce = np.max if self.largest else np.min
+            where = True if invalid is None else ~invalid
+            return reduce(values, axis=0, keepdims=True, initial=self._fill_value(values.dtype), where=where)
+        work = np.moveaxis(values, 0, -1).copy(order="C")
+        if invalid is not None:
+            np.copyto(work, self._fill_value(work.dtype), where=np.moveaxis(invalid, 0, -1))
+        return self._select_work(work, sort=sort)
+
+    def _merge_values(self, values, counts):
+        dtype = np.result_type(self.values.dtype, values.dtype)
+        work = np.empty((*counts.shape, 2 * self.k), dtype=dtype)
+        work[..., : self.k] = np.moveaxis(self.values, 0, -1)
+        work[..., self.k :] = np.moveaxis(values, 0, -1)
+        # Refill missing ranks after promotion: an integer sentinel need not be
+        # an extremum of the promoted dtype. Restored states can have arbitrary
+        # values at masked ranks as well.
+        ranks = np.arange(self.k)
+        fill = self._fill_value(dtype)
+        np.copyto(work[..., : self.k], fill, where=ranks >= self.n_samples[..., None])
+        np.copyto(work[..., self.k :], fill, where=ranks >= counts[..., None])
+        return self._select_work(work)
 
     def _mask(self):
         ranks = np.arange(self.k).reshape((self.k,) + (1,) * self.n_samples.ndim)
@@ -114,20 +143,27 @@ class BatchTopK(StateMixin):
         if batch.dtype.kind not in "biuf":
             raise TypeError("Top-k requires real numeric arrays.")
         data = self._reshape(batch)
-        valid = ~np.isnan(data)
-        if not self._ignore_nan and not valid.all():
-            raise ValueError("BatchTopK rejects NaNs; use BatchNanTopK.")
-        counts = np.asarray(np.count_nonzero(valid, axis=0))
+        invalid = np.isnan(data) if data.dtype.kind == "f" else None
+        if invalid is not None and not invalid.any():
+            invalid = None
+        if invalid is not None:
+            if not self._ignore_nan:
+                raise ValueError("BatchTopK rejects NaNs; use BatchNanTopK.")
+            counts = np.asarray(data.shape[0] - np.count_nonzero(invalid, axis=0))
+        else:
+            counts = np.full(data.shape[1:], data.shape[0], dtype=np.int64)
         if self.values is not None and (counts.shape != self.n_samples.shape or batch.ndim != self._ndim):
             raise DifferentShapesError()
-        selected = self._select(data, valid)
+        # Local ranks must be sorted for the merge masks when a position has
+        # fewer than k observations; fully populated tails need only one sort.
+        sort = self.values is None or np.any(counts < self.k)
+        selected = self._select(data, invalid, sort=sort)
         if self.values is not None:
-            local_mask = np.arange(self.k).reshape((self.k,) + (1,) * counts.ndim) < counts
-            selected = self._select(
-                np.concatenate((self.values, selected)), np.concatenate((~self._mask(), local_mask))
-            )
+            selected = self._merge_values(selected, counts)
             counts = self.n_samples + counts
-        self.values, self.n_samples, self._ndim = selected, counts, batch.ndim
+        # Keep public state contiguous for rank reads and checkpoint writes;
+        # only the temporary selection buffers need contiguous rank vectors.
+        self.values, self.n_samples, self._ndim = np.ascontiguousarray(selected), counts, batch.ndim
         return self
 
     def __call__(self):
@@ -140,7 +176,9 @@ class BatchTopK(StateMixin):
         rank = _positive_integer(rank, "rank")
         if rank > self.k:
             raise ValueError("Rank exceeds retained capacity.")
-        return self()[rank - 1]
+        if self.values is None:
+            raise NoValidSamplesError()
+        return np.ma.array(self.values[rank - 1].copy(), mask=self.n_samples < rank)
 
     def quantile(self, q, method="linear"):
         """Read an exact scalar quantile; empty positions yield NaN.
@@ -184,9 +222,7 @@ class BatchTopK(StateMixin):
         else:
             if self.n_samples.shape != other.n_samples.shape or self._ndim != other._ndim:
                 raise DifferentShapesError()
-            result.values = self._select(
-                np.concatenate((self.values, other.values)), np.concatenate((~self._mask(), ~other._mask()))
-            )
+            result.values = np.ascontiguousarray(self._merge_values(other.values, other.n_samples))
             result.n_samples = self.n_samples + other.n_samples
             result._ndim = self._ndim
         return result

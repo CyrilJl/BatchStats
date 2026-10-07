@@ -108,3 +108,33 @@ def test_topk_state_order():
     state["arrays"]["values"][:] = [[1], [2], [3]]
     with pytest.raises(ValueError, match="ordered"):
         BatchTopK.from_state(state)
+
+
+@pytest.mark.parametrize("axis", [0, 1, -1, (0, 2), None, ()])
+@pytest.mark.parametrize("dtype", [np.bool_, np.int16, np.uint64, np.float32, np.float64, np.complex128])
+@pytest.mark.parametrize("missing", [False, True])
+def test_nan_reductions_preserve_numpy_semantics(axis, dtype, missing):
+    data = np.arange(60).reshape(5, 3, 4).astype(dtype)
+    if missing and data.dtype.kind in "fc":
+        data[::2, 0, :] = np.nan
+        data[:, 1, 0] = np.nan
+        if data.dtype.kind == "c":
+            data[0, 2, 0] = complex(3, np.nan)
+    data = data[::-1, :, ::-1]
+    data.flags.writeable = False
+    stat = BatchNanSum(axis=axis).update_batch(data).update_batch(data)
+    counts = np.count_nonzero(~np.isnan(data), axis=axis) * 2
+    batch_sum = np.nansum(data, axis=axis)
+    expected = batch_sum + batch_sum
+    assert stat.sum.dtype == expected.dtype
+    np.testing.assert_allclose(stat.sum, expected)
+    np.testing.assert_array_equal(stat.n_samples, counts)
+    np.testing.assert_allclose(stat(), np.where(counts, expected, np.nan))
+
+
+@pytest.mark.parametrize("axis", [0, 1, None, ()])
+def test_nan_sum_empty_dimensions(axis):
+    data = np.empty((0, 3))
+    stat = BatchNanSum(axis=axis).update_batch(data)
+    np.testing.assert_array_equal(stat.n_samples, np.count_nonzero(~np.isnan(data), axis=axis))
+    np.testing.assert_array_equal(stat.sum, np.nansum(data, axis=axis))
