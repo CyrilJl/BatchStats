@@ -118,16 +118,3 @@ mean.update_batch(next_batch)
 Use `keep_attrs=True` to keep variable and Dataset attributes from the first
 batch. See [the xarray guide](docs/source/xarray_support.rst) for coordinate
 validation, weighted statistics, covariance, top-k and streaming limits.
-
-## Development
-
-Install the development dependencies and run the local quality gates:
-
-```console
-python -m pip install -e ".[dev,xarray]"
-python -m ruff check .
-python -m ruff format --check .
-python -m pytest --cov=batchstats
-python -m build
-python -m twine check dist/*
-```
